@@ -21,7 +21,7 @@ This checklist records the release evidence for the private CCNA Reviewer previe
 ## Verified against Vercel
 
 - The GitHub-connected `ccna-reviewer` project builds from the `web/` root directory.
-- The PR #10 branch preview is Ready at the stable branch alias: https://ccna-reviewer-git-feat-2-canonical-c-6097b3-kriezer12s-projects.vercel.app (latest verified commit `1966517`).
+- The PR #10 branch preview is Ready at the stable branch alias: https://ccna-reviewer-git-feat-2-canonical-c-6097b3-kriezer12s-projects.vercel.app (latest verified commit `3162955`).
 - Vercel Deployment Protection currently places an account gate in front of the preview; owner browser verification must be performed while signed into the Vercel project or after the protection setting is adjusted.
 - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are configured for Preview and Production. The publishable key is public by design.
 - The preview and production callback URLs are listed in Supabase Auth configuration.

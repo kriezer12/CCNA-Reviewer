@@ -84,7 +84,7 @@ export default async function Home() {
       icon: [LayoutDashboard, PanelLeft, Route, ShieldCheck, Wifi][Math.min(Math.floor(index / 4), 4)],
     }
   })
-  const completedWeeks = roadmap.filter((week) => week.progress === 100).length
+  const completedWeeks = dataError ? null : roadmap.filter((week) => week.progress === 100).length
   const labProgressById = new Map(dashboardData.labs.map((row) => [row.lab_id, row]))
   const labs = curriculum.labs.slice(5, 8).map((lab, index) => {
     const row = labProgressById.get(lab.id)
@@ -199,7 +199,7 @@ export default async function Home() {
                   <CardHeader className="border-b border-border">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex flex-col gap-1"><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Path to exam day</CardDescription><CardTitle>18-week roadmap</CardTitle></div>
-                      <Badge variant="outline">{completedWeeks} / {curriculum.roadmap.weeks.length} weeks</Badge>
+                      <Badge variant="outline">{completedWeeks === null ? "Unavailable" : `${completedWeeks} / ${curriculum.roadmap.weeks.length} weeks`}</Badge>
                     </div>
                   </CardHeader>
                   <CardContent className="flex flex-col gap-0 p-0">
