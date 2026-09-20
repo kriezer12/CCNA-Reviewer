@@ -28,20 +28,31 @@ import {
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { LogoutButton } from "@/components/logout-button"
+import { LabProgressControl } from "@/components/dashboard/lab-progress-control"
+import { ObjectiveProgressControl } from "@/components/dashboard/objective-progress-control"
+import { QuizRunner } from "@/components/dashboard/quiz-runner"
+import { StudySessionForm } from "@/components/dashboard/study-session-form"
+import { curriculum } from "@/content/curriculum"
+import { calculateCompletion, calculateStudyStreak } from "@/lib/analytics"
+import { requireOwner } from "@/lib/supabase/auth"
+import { loadDashboardData, type DashboardData } from "@/lib/supabase/progress"
 
-const roadmap = [
-  { label: "Foundations", meta: "Weeks 01–03", progress: 100, icon: LayoutDashboard },
-  { label: "Switching + STP", meta: "Weeks 04–05", progress: 72, icon: PanelLeft },
-  { label: "Routing + OSPF", meta: "Weeks 06–09", progress: 24, icon: Route },
-  { label: "Services + security", meta: "Weeks 10–14", progress: 0, icon: ShieldCheck },
-  { label: "Wireless + automation", meta: "Weeks 15–16", progress: 0, icon: Wifi },
-]
+const roadmap = curriculum.roadmap.weeks.map((week, index) => ({
+  label: `Week ${String(week.week).padStart(2, "0")}`,
+  meta: week.dates,
+  focus: week.focus,
+  progress: 0,
+  icon: [LayoutDashboard, PanelLeft, Route, ShieldCheck, Wifi][Math.min(Math.floor(index / 4), 4)],
+}))
 
-const labs = [
-  { id: "L06", name: "Bundle the uplinks", type: "Packet Tracer", time: "45 min", state: "Next" },
-  { id: "L07", name: "Discover the topology", type: "Packet Tracer", time: "35 min", state: "Queued" },
-  { id: "L08", name: "Connect departments", type: "Desktop lab", time: "55 min", state: "Queued" },
-]
+const labs = curriculum.labs.slice(5, 8).map((lab, index) => ({
+  id: lab.id,
+  name: lab.title,
+  type: lab.platform.primary,
+  time: `${lab.durationMinutes} min`,
+  state: index === 0 ? "Next" : "Queued",
+}))
 
 function Stat({ value, label }: { value: string; label: string }) {
   return (
@@ -52,7 +63,25 @@ function Stat({ value, label }: { value: string; label: string }) {
   )
 }
 
-export default function Home() {
+export const dynamic = "force-dynamic"
+
+export default async function Home() {
+  const user = await requireOwner()
+  let dashboardData: DashboardData = { topics: [], labs: [], sessions: [], attempts: [] }
+  let dataError: string | null = null
+
+  try {
+    dashboardData = await loadDashboardData(user.id)
+  } catch (error) {
+    dataError = error instanceof Error ? error.message : "Unable to load study progress."
+  }
+
+  const objectiveCompletion = calculateCompletion(dashboardData.topics, curriculum.objectives.length)
+  const labCompletion = calculateCompletion(dashboardData.labs, curriculum.labs.length)
+  const studyMinutes = dashboardData.sessions.reduce((total, session) => total + session.duration_minutes, 0)
+  const streak = calculateStudyStreak(dashboardData.sessions)
+  const latestAttempt = dashboardData.attempts[0]
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <div className="mx-auto flex min-h-screen max-w-[1440px] flex-col lg:flex-row">
@@ -87,12 +116,12 @@ export default function Home() {
               <div className="flex size-9 items-center justify-center rounded-md bg-primary text-primary-foreground lg:hidden"><Command className="size-4" /></div>
               <div className="flex flex-col gap-0.5">
                 <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Monday / Week 04</span>
-                <span className="text-sm font-medium">Good evening, Kenneth.</span>
+                <span className="text-sm font-medium">Good evening, {user.email?.split("@")[0] ?? "learner"}.</span>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <Badge className="hidden font-mono text-[10px] uppercase tracking-[0.12em] sm:inline-flex" variant="outline">6 day streak</Badge>
-              <Button aria-label="Open menu" size="icon" variant="ghost"><PanelLeft /></Button>
+              <LogoutButton />
             </div>
           </header>
 
@@ -114,20 +143,22 @@ export default function Home() {
               <Card className="halftone border-border bg-muted/40">
                 <CardHeader>
                   <CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Exam coverage</CardDescription>
-                  <CardTitle className="font-mono text-3xl tracking-tight">24 / 53</CardTitle>
+                  <CardTitle className="font-mono text-3xl tracking-tight">{objectiveCompletion.completed} / {objectiveCompletion.total}</CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-3">
-                  <Progress value={45} aria-label="Exam objective coverage" />
-                  <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground"><span>Objectives mapped</span><span>45%</span></div>
+                  <Progress value={objectiveCompletion.percentage} aria-label="Exam objective coverage" />
+                  <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground"><span>Lesson understanding</span><span>{objectiveCompletion.percentage}%</span></div>
                 </CardContent>
               </Card>
             </section>
 
             <section className="grid gap-3 border-y border-border py-5 sm:grid-cols-3 sm:gap-0">
-              <Stat value="04" label="Current week" />
-              <Stat value="06:20" label="Study time this week" />
-              <Stat value="02" label="Skills due for review" />
+              <Stat value={String(objectiveCompletion.completed).padStart(2, "0")} label="Objectives complete" />
+              <Stat value={`${Math.floor(studyMinutes / 60)}:${String(studyMinutes % 60).padStart(2, "0")}`} label="Recorded study time" />
+              <Stat value={String(streak).padStart(2, "0")} label="30-minute streak" />
             </section>
+
+            {dataError ? <Card className="border-destructive/50 bg-destructive/5"><CardContent className="pt-6"><p className="text-sm text-destructive" role="alert">{dataError} Refresh the page and retry.</p></CardContent></Card> : null}
 
             <Tabs className="flex flex-col gap-6" defaultValue="roadmap">
               <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
@@ -143,7 +174,7 @@ export default function Home() {
                   <CardHeader className="border-b border-border">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex flex-col gap-1"><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Path to exam day</CardDescription><CardTitle>18-week roadmap</CardTitle></div>
-                      <Badge variant="outline">4 / 18 weeks</Badge>
+                      <Badge variant="outline">0 / {curriculum.roadmap.weeks.length} weeks</Badge>
                     </div>
                   </CardHeader>
                   <CardContent className="flex flex-col gap-0 p-0">
@@ -153,7 +184,7 @@ export default function Home() {
                         <div className="flex items-center gap-4 border-b border-border px-5 py-4 last:border-b-0 sm:px-6" key={item.label}>
                           <div className="flex size-9 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground">{item.progress === 100 ? <Check className="size-4 text-foreground" /> : <Icon className="size-4" />}</div>
                           <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                            <div className="flex items-center justify-between gap-3"><span className="truncate text-sm font-medium">{item.label}</span><span className="font-mono text-[10px] text-muted-foreground">{item.progress}%</span></div>
+                            <div className="flex items-center justify-between gap-3"><span className="truncate text-sm font-medium">{item.label} · {item.focus}</span><span className="font-mono text-[10px] text-muted-foreground">{item.progress}%</span></div>
                             <Progress className="h-1" value={item.progress} aria-label={item.label + " progress"} />
                             <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{item.meta}</span>
                           </div>
@@ -176,11 +207,12 @@ export default function Home() {
                   </CardContent>
                   <CardFooter><Button className="w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90" size="lg">Start focused review <ArrowUpRight data-icon="inline-end" /></Button></CardFooter>
                 </Card>
+                <ObjectiveProgressControl objectives={curriculum.objectives} initialRows={dashboardData.topics} />
               </TabsContent>
 
               <TabsContent className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]" value="labs">
                 <Card>
-                  <CardHeader className="border-b border-border"><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Practical sequence</CardDescription><CardTitle>Lab queue</CardTitle></CardHeader>
+                  <CardHeader className="border-b border-border"><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Practical sequence</CardDescription><div className="flex items-center justify-between gap-3"><CardTitle>Lab queue</CardTitle><Badge variant="outline">{labCompletion.completed} / {labCompletion.total}</Badge></div></CardHeader>
                   <CardContent className="flex flex-col gap-0 p-0">
                     {labs.map((lab) => (
                       <div className="flex flex-col gap-3 border-b border-border px-5 py-5 last:border-b-0 sm:flex-row sm:items-center sm:px-6" key={lab.id}>
@@ -195,26 +227,23 @@ export default function Home() {
                   <CardHeader><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Lab rule</CardDescription><CardTitle>Evidence over memory</CardTitle></CardHeader>
                   <CardContent className="flex flex-col gap-3 text-sm leading-6 text-muted-foreground"><p>Save the topology, show output, and the desired/forbidden connectivity checks.</p><Separator /><p>Phone time prepares the lab. Desktop time configures it.</p></CardContent>
                 </Card>
+                <LabProgressControl labs={curriculum.labs} initialRows={dashboardData.labs} />
+                <StudySessionForm />
               </TabsContent>
 
               <TabsContent className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]" value="blueprint">
                 <Card>
                   <CardHeader className="border-b border-border"><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">200-301 v1.1</CardDescription><CardTitle>Objective weight</CardTitle></CardHeader>
                   <CardContent className="grid gap-5 p-5 sm:grid-cols-2 sm:p-6">
-                    {[
-                      ["Network Fundamentals", "20%"],
-                      ["Network Access", "20%"],
-                      ["IP Connectivity", "25%"],
-                      ["IP Services", "10%"],
-                      ["Security Fundamentals", "15%"],
-                      ["Automation", "10%"],
-                    ].map(([name, value]) => <div className="flex items-center justify-between border-b border-border pb-3" key={name}><span className="text-sm">{name}</span><span className="font-mono text-sm font-semibold">{value}</span></div>)}
+                    {curriculum.domains.map((domain) => <div className="flex items-center justify-between border-b border-border pb-3" key={domain.id}><span className="text-sm">{domain.title}</span><span className="font-mono text-sm font-semibold">{domain.weight}%</span></div>)}
                   </CardContent>
                 </Card>
                 <Card className="bg-muted/40">
                   <CardHeader><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Readiness signal</CardDescription><CardTitle>Keep the weak spots visible.</CardTitle></CardHeader>
                   <CardContent className="flex flex-col gap-3 text-sm leading-6 text-muted-foreground"><p>Two fresh mixed assessments, no weak domain below the internal threshold, and independent configuration evidence.</p></CardContent>
                 </Card>
+                <QuizRunner />
+                <Card className="bg-muted/40"><CardHeader><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Quiz history</CardDescription><CardTitle>{latestAttempt ? `${latestAttempt.score}/${latestAttempt.total_questions}` : "No attempts yet"}</CardTitle></CardHeader><CardContent><p className="text-sm leading-6 text-muted-foreground">{latestAttempt ? "Latest saved checkpoint score." : "Complete a checkpoint to start your quiz trend."}</p></CardContent></Card>
               </TabsContent>
             </Tabs>
           </div>
