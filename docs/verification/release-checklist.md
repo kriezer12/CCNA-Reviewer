@@ -21,16 +21,14 @@ This checklist records the release evidence for the private CCNA Reviewer previe
 ## Verified against Vercel
 
 - The GitHub-connected `ccna-reviewer` project builds from the `web/` root directory.
-- The PR #10 branch preview is Ready at the stable branch alias: https://ccna-reviewer-git-feat-2-canonical-c-6097b3-kriezer12s-projects.vercel.app (latest verified commit `3162955`).
+- The PR #10 branch preview is Ready at the stable branch alias: https://ccna-reviewer-git-feat-2-canonical-c-6097b3-kriezer12s-projects.vercel.app (latest verified commit `44ad94b`).
 - Vercel Deployment Protection currently places an account gate in front of the preview; owner browser verification must be performed while signed into the Vercel project or after the protection setting is adjusted.
 - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are configured for Preview and Production. The publishable key is public by design.
 - The preview and production callback URLs are listed in Supabase Auth configuration.
 
-## Owner setup still required
+## Owner setup verified
 
-1. Create the single owner in Supabase Authentication → Users.
-2. Set `ALLOWED_EMAIL` in Vercel Preview and Production to that account's normalized email.
-3. Configure the Google OAuth client in Supabase and add the Supabase provider callback URI to Google Cloud.
-4. Exercise email/password sign-in, Google callback, rejected-email sign-out, logout, and session expiry with the provisioned account.
-
-The first three steps require account credentials and provider secrets that are not stored in this repository.
+- A confirmed owner exists in Supabase Authentication → Users.
+- `ALLOWED_EMAIL` matches the owner in local development and Vercel Preview/Production.
+- Google OAuth is configured by the owner and the callback URL is present in Supabase Auth configuration.
+- Interactive sign-in, rejected-email sign-out, logout, and session-expiry checks remain a browser verification step because Vercel Preview Deployment Protection requires the owner session.
