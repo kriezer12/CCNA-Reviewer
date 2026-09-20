@@ -1,7 +1,7 @@
 # CCNA Reviewer: Supabase Authentication and Progress Tracking
 
 **Date:** 2026-09-20  
-**Status:** Design approved in conversation; ready for user review before implementation
+**Status:** Design decisions resolved in conversation; ready for ticket planning
 
 ## Goal
 
@@ -18,6 +18,7 @@ The first release is for one person. It supports email/password authentication a
 - An allowlist check for the single owner email.
 - Protected dashboard routes with secure Supabase session cookies.
 - Completion tracking for roadmap objectives and labs.
+- Separate tracking for lesson understanding, lab demonstration, and quiz performance.
 - Manual study-session logging.
 - Multiple-choice quizzes with explanations and saved attempts.
 - A streak that counts a calendar day only when at least 30 minutes are logged.
@@ -40,6 +41,15 @@ Use relational Supabase tables for user-owned state while keeping curriculum con
 
 The browser uses the Supabase anon key and authenticated session only. A service-role key, if needed for a server-only maintenance operation, must never be exposed to client code.
 
+## Resolved product decisions
+
+- The owner account is provisioned directly in Supabase Auth. The website has no public sign-up route.
+- Access is restricted to the normalized owner email. Email/password and Google are the only login methods.
+- Lesson understanding, lab demonstration, and quiz performance remain separate progress dimensions.
+- The dashboard shows separate objective coverage, lab completion, quiz performance, study time, and streak metrics. It does not create a blended progress score.
+- The initial quiz bank contains six domain banks with approximately ten objective-tagged multiple-choice questions per domain. The bank can expand without changing the persistence model.
+- Lab evidence stores an evidence mode (`self_reported` or `verified`) and an evidence note. File uploads are out of scope for the first release.
+
 ## Authentication and access
 
 ### Login UI
@@ -56,10 +66,10 @@ The login surface lives at `/login` and supports:
 
 - Email/password sign-in.
 - Google sign-in.
-- A constrained account-creation path for the allowlisted email during initial setup.
+- No public account creation; the single owner account is provisioned in Supabase Auth during setup.
 - Clear invalid-credentials, OAuth, unapproved-email, and expired-session messages.
 
-The production Supabase project should disable unrestricted signups after the single owner account has been created. Google sign-in is accepted only when the returned email exactly matches the normalized allowlist value.
+The production Supabase project should keep public signups disabled. Google sign-in is accepted only when the returned email exactly matches the normalized allowlist value.
 
 ### Session flow
 
@@ -84,6 +94,8 @@ Curriculum identifiers come from the existing roadmap, objective-coverage, and l
 
 ### `topic_progress`
 
+This table represents lesson/topic understanding for the 53 CCNA parent objectives. An absent row means not started; rows are created when the learner begins or completes an objective.
+
 - `user_id uuid` references `auth.users(id)`.
 - `objective_id text` identifies one CCNA objective.
 - `status text` constrained to `not_started`, `in_progress`, or `complete`.
@@ -96,6 +108,7 @@ Curriculum identifiers come from the existing roadmap, objective-coverage, and l
 - `user_id uuid` references `auth.users(id)`.
 - `lab_id text` identifies one lab.
 - `status text` constrained to `not_started`, `in_progress`, or `complete`.
+- `evidence_mode text` constrained to `self_reported` or `verified`.
 - `evidence_note text` nullable.
 - `completed_at timestamptz` nullable.
 - `updated_at timestamptz`.
@@ -126,6 +139,8 @@ Sessions shorter than 30 minutes may be recorded for an accurate history, but on
 
 Quiz questions are multiple-choice with explanations. The app calculates the score from the static question bank and stores the attempt payload for history and analytics.
 
+The initial static bank contains six domain collections with approximately ten objective-tagged questions per collection. Each question carries one or more objective IDs so weak objectives can be surfaced without creating a quiz table.
+
 ## Row Level Security
 
 Every personal table enables RLS and uses policies equivalent to:
@@ -155,7 +170,7 @@ The existing shadcn components and KO-inspired tokens remain the visual foundati
 1. The protected dashboard reads the current user session.
 2. Static curriculum definitions provide labels, weights, explanations, and quiz questions.
 3. Supabase queries fetch the user's progress rows, study sessions, and quiz attempts.
-4. Pure helpers derive completion, time totals, score trends, recent activity, and streak.
+4. Pure helpers derive objective coverage, lab completion, time totals, score trends, recent activity, and streak as separate metrics.
 5. User actions upsert progress or insert a session/attempt, then refresh the affected summary.
 6. The UI shows a success state only after the database operation succeeds.
 
@@ -174,6 +189,7 @@ No progress or analytics value is sourced from localStorage. Static content may 
 ## Validation plan
 
 - Unit tests for completion percentages, quiz scoring, and the 30-minute streak calculation.
+- Quiz fixtures covering all six initial domain banks and objective tags.
 - Database migration checks for constraints, unique keys, and RLS ownership policies.
 - Auth checks for email/password login, Google callback, allowlist rejection, logout, and expired sessions.
 - Browser checks for login states, dashboard loading, progress updates, session logging, quiz submission, and responsive layouts.
@@ -181,7 +197,7 @@ No progress or analytics value is sourced from localStorage. Static content may 
 
 ## Implementation sequence
 
-1. Add Supabase dependencies and environment-variable documentation.
+1. Add Supabase dependencies and environment-variable documentation; provision the single owner account in Supabase Auth.
 2. Add the `login-05` block and remove Apple OAuth UI.
 3. Add Supabase browser/server clients, callback route, middleware, and allowlist checks.
 4. Add the SQL migration for tables, constraints, indexes, and RLS.
@@ -189,4 +205,3 @@ No progress or analytics value is sourced from localStorage. Static content may 
 6. Replace prototype placeholder metrics with database-backed dashboard data.
 7. Add progress controls, manual session logging, quiz attempts, streak display, and error states.
 8. Validate locally, configure Supabase/Vercel redirects and environment variables, then deploy a preview.
-
