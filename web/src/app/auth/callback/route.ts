@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server"
 
 import { getAllowedEmail, isAllowedEmail } from "@/lib/supabase/env"
+import { safeRedirectPath } from "@/lib/supabase/redirect"
 import { createClient } from "@/lib/supabase/server"
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get("code")
   const next = requestUrl.searchParams.get("next")
-  const safeNext = next?.startsWith("/") && !next.startsWith("//") ? next : "/"
+  const safeNext = safeRedirectPath(next, requestUrl.origin)
 
   if (!code) {
     return NextResponse.redirect(new URL("/login?error=oauth", requestUrl.origin))

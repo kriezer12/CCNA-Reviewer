@@ -31,15 +31,19 @@ export function QuizRunner() {
   async function submit() {
     if (!validateQuizSubmission(questions, answers)) { setState("error"); return }
     setState("saving")
-    const response = await fetch("/api/quiz-attempts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ domainId, answers }),
-    })
-    if (!response.ok) { setState("error"); return }
-    setSubmitted(true)
-    setState("saved")
-    router.refresh()
+    try {
+      const response = await fetch("/api/quiz-attempts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ domainId, answers }),
+      })
+      if (!response.ok) { setState("error"); return }
+      setSubmitted(true)
+      setState("saved")
+      router.refresh()
+    } catch {
+      setState("error")
+    }
   }
 
   return (

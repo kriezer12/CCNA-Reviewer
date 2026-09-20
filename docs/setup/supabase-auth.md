@@ -10,7 +10,10 @@ Set these variables in `web/.env.local` for local development and in Vercel for 
 NEXT_PUBLIC_SUPABASE_URL=https://ynhlrrfimhburaeaqezz.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<Supabase publishable or anon key>
 ALLOWED_EMAIL=<lowercase owner email>
+STUDY_TIME_ZONE=Asia/Manila
 ```
+
+`STUDY_TIME_ZONE` controls which local calendar day counts toward the 30-minute streak. Use the owner's IANA timezone.
 
 The browser receives only the public URL and publishable/anon key. Never add a Supabase service-role or secret key to a `NEXT_PUBLIC_` variable.
 
@@ -29,4 +32,3 @@ The app sends Google users through `/auth/callback`, exchanges the PKCE code for
 ## Protected routes
 
 The Next.js proxy refreshes Supabase cookies for protected requests. The dashboard calls a server-side owner check before rendering. Client components use the browser client only for sign-in and sign-out.
-

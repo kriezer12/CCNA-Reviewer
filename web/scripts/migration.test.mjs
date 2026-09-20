@@ -14,6 +14,8 @@ const activityPrivilegesMigrationPath = new URL("../../supabase/migrations/20260
 const activityPrivilegesMigration = await readFile(activityPrivilegesMigrationPath, "utf8")
 const functionSearchPathMigrationPath = new URL("../../supabase/migrations/20260920134818_fix_jsonb_function_search_path.sql", import.meta.url)
 const functionSearchPathMigration = await readFile(functionSearchPathMigrationPath, "utf8")
+const functionPrivilegesMigrationPath = new URL("../../supabase/migrations/20260920135330_grant_jsonb_function_execute.sql", import.meta.url)
+const functionPrivilegesMigration = await readFile(functionPrivilegesMigrationPath, "utf8")
 
 test("progress migration declares all user-owned tables and constraints", () => {
   for (const table of ["topic_progress", "lab_progress", "study_sessions", "quiz_attempts"]) {
@@ -68,4 +70,8 @@ test("personal tables do not expose administrative table privileges", () => {
 test("database helper functions pin their search path", () => {
   assert.match(functionSearchPathMigration, /alter function public\.ccna_jsonb_object_count\(jsonb\)/)
   assert.match(functionSearchPathMigration, /set search_path = pg_catalog/)
+})
+
+test("authenticated quiz writes can execute the payload check helper", () => {
+  assert.match(functionPrivilegesMigration, /grant execute on function public\.ccna_jsonb_object_count\(jsonb\) to authenticated/)
 })

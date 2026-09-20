@@ -35,7 +35,7 @@ import { QuizRunner } from "@/components/dashboard/quiz-runner"
 import { StudySessionForm } from "@/components/dashboard/study-session-form"
 import { RetryButton } from "@/components/dashboard/retry-button"
 import { curriculum } from "@/content/curriculum"
-import { calculateCompletion, calculateQuizScore, calculateQuizTrend, calculateStudyStreak } from "@/lib/analytics"
+import { calculateCompletion, calculateQuizScore, calculateQuizTrend, calculateStudyStreak, todayInTimeZone } from "@/lib/analytics"
 import { requireOwner } from "@/lib/supabase/auth"
 import { loadDashboardData, type DashboardData } from "@/lib/supabase/progress"
 
@@ -61,12 +61,12 @@ export default async function Home() {
     dataError = error instanceof Error ? error.message : "Unable to load study progress."
   }
 
-  const objectiveCompletion = calculateCompletion(dashboardData.topics, curriculum.objectives.length)
-  const labCompletion = calculateCompletion(dashboardData.labs, curriculum.labs.length)
-  const studyMinutes = dashboardData.sessions.reduce((total, session) => total + session.duration_minutes, 0)
-  const streak = calculateStudyStreak(dashboardData.sessions)
-  const latestAttempt = dashboardData.attempts[0]
-  const quizTrend = calculateQuizTrend(dashboardData.attempts)
+  const objectiveCompletion = dataError ? null : calculateCompletion(dashboardData.topics, curriculum.objectives.length)
+  const labCompletion = dataError ? null : calculateCompletion(dashboardData.labs, curriculum.labs.length)
+  const studyMinutes = dataError ? null : dashboardData.sessions.reduce((total, session) => total + session.duration_minutes, 0)
+  const streak = dataError ? null : calculateStudyStreak(dashboardData.sessions, todayInTimeZone(process.env.STUDY_TIME_ZONE ?? "Asia/Manila"))
+  const latestAttempt = dataError ? undefined : dashboardData.attempts[0]
+  const quizTrend = dataError ? [] : calculateQuizTrend(dashboardData.attempts)
   const completedObjectiveIds = new Set(dashboardData.topics.filter((row) => row.status === "complete").map((row) => row.objective_id))
   const roadmap = curriculum.roadmap.weeks.map((week, index) => {
     const activityIds = new Set(week.activityIds)
@@ -75,7 +75,7 @@ export default async function Home() {
       ...curriculum.browserActivities.filter((activity) => activityIds.has(activity.id)).flatMap((activity) => activity.objectiveIds),
     ])
     const completed = [...objectiveIds].filter((objectiveId) => completedObjectiveIds.has(objectiveId)).length
-    const progress = objectiveIds.size === 0 ? 0 : Math.round((completed / objectiveIds.size) * 100)
+    const progress = dataError ? null : objectiveIds.size === 0 ? 0 : Math.round((completed / objectiveIds.size) * 100)
     return {
       label: `Week ${String(week.week).padStart(2, "0")}`,
       meta: week.dates,
@@ -93,7 +93,8 @@ export default async function Home() {
       name: lab.title,
       type: lab.platform.primary,
       time: `${lab.durationMinutes} min`,
-      state: row?.status === "complete" ? "Complete" : row?.status === "in_progress" ? "In progress" : index === 0 ? "Next" : "Queued",
+      state: dataError ? "Unavailable" : row?.status === "complete" ? "Complete" : row?.status === "in_progress" ? "In progress" : index === 0 ? "Next" : "Queued",
+      evidence: dataError ? "not loaded" : row?.evidence_mode?.replace("_", " ") ?? "not recorded",
     }
   })
   const objectiveById = new Map<string, string>(curriculum.objectives.map((objective) => [objective.id, objective.title]))
@@ -143,7 +144,7 @@ export default async function Home() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Badge className="hidden font-mono text-[10px] uppercase tracking-[0.12em] sm:inline-flex" variant="outline">{streak ? `${streak} day streak` : "No streak yet"}</Badge>
+              <Badge className="hidden font-mono text-[10px] uppercase tracking-[0.12em] sm:inline-flex" variant="outline">{streak === null ? "Progress unavailable" : streak ? `${streak} day streak` : "No streak yet"}</Badge>
               <LogoutButton />
             </div>
           </header>
@@ -166,24 +167,23 @@ export default async function Home() {
               <Card className="halftone border-border bg-muted/40">
                 <CardHeader>
                   <CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Exam coverage</CardDescription>
-                  <CardTitle className="font-mono text-3xl tracking-tight">{objectiveCompletion.completed} / {objectiveCompletion.total}</CardTitle>
+                  <CardTitle className="font-mono text-3xl tracking-tight">{objectiveCompletion ? `${objectiveCompletion.completed} / ${objectiveCompletion.total}` : "Unavailable"}</CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-3">
-                  <Progress value={objectiveCompletion.percentage} aria-label="Exam objective coverage" />
-                  <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground"><span>Lesson understanding</span><span>{objectiveCompletion.percentage}%</span></div>
+                  {objectiveCompletion ? <><Progress value={objectiveCompletion.percentage} aria-label="Exam objective coverage" /><div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground"><span>Lesson understanding</span><span>{objectiveCompletion.percentage}%</span></div></> : <p className="text-sm text-muted-foreground">Retry to load saved objective progress.</p>}
                 </CardContent>
               </Card>
             </section>
 
             <section className="grid gap-3 border-y border-border py-5 sm:grid-cols-3 sm:gap-0">
-              <Stat value={String(objectiveCompletion.completed).padStart(2, "0")} label="Objectives complete" />
-              <Stat value={`${Math.floor(studyMinutes / 60)}:${String(studyMinutes % 60).padStart(2, "0")}`} label="Recorded study time" />
-              <Stat value={String(streak).padStart(2, "0")} label="30-minute streak" />
+              <Stat value={objectiveCompletion ? String(objectiveCompletion.completed).padStart(2, "0") : "—"} label="Objectives complete" />
+              <Stat value={studyMinutes === null ? "—" : `${Math.floor(studyMinutes / 60)}:${String(studyMinutes % 60).padStart(2, "0")}`} label="Recorded study time" />
+              <Stat value={streak === null ? "—" : String(streak).padStart(2, "0")} label="30-minute streak" />
             </section>
 
             {dataError ? <Card className="border-destructive/50 bg-destructive/5"><CardContent className="flex items-center justify-between gap-4 pt-6"><p className="text-sm text-destructive" role="alert">{dataError}</p><RetryButton /></CardContent></Card> : null}
 
-            <Card><CardHeader><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Saved activity</CardDescription><CardTitle>Recent activity</CardTitle></CardHeader><CardContent className="flex flex-col gap-3">{recentActivity.length ? recentActivity.map((activity, index) => <div className="flex items-start justify-between gap-4 border-b border-border pb-3 last:border-0 last:pb-0" key={`${activity.date}-${index}`}><div className="flex min-w-0 flex-col gap-1"><span className="truncate text-sm font-medium">{activity.label}</span><span className="truncate text-xs text-muted-foreground">{activity.detail}</span></div><span className="shrink-0 font-mono text-[10px] text-muted-foreground">{activity.date.slice(0, 10)}</span></div>) : <p className="text-sm leading-6 text-muted-foreground">No saved activity yet. Record a lesson, lab, session, or quiz to see it here.</p>}</CardContent></Card>
+            <Card><CardHeader><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Saved activity</CardDescription><CardTitle>Recent activity</CardTitle></CardHeader><CardContent className="flex flex-col gap-3">{recentActivity.length ? recentActivity.map((activity, index) => <div className="flex items-start justify-between gap-4 border-b border-border pb-3 last:border-0 last:pb-0" key={`${activity.date}-${index}`}><div className="flex min-w-0 flex-col gap-1"><span className="truncate text-sm font-medium">{activity.label}</span><span className="truncate text-xs text-muted-foreground">{activity.detail}</span></div><span className="shrink-0 font-mono text-[10px] text-muted-foreground">{activity.date.slice(0, 10)}</span></div>) : <p className="text-sm leading-6 text-muted-foreground">{dataError ? "Saved activity is unavailable. Retry to load it." : "No saved activity yet. Record a lesson, lab, session, or quiz to see it here."}</p>}</CardContent></Card>
 
             <Tabs className="flex flex-col gap-6" defaultValue="roadmap">
               <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
@@ -209,8 +209,8 @@ export default async function Home() {
                         <div className="flex items-center gap-4 border-b border-border px-5 py-4 last:border-b-0 sm:px-6" key={item.label}>
                           <div className="flex size-9 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground">{item.progress === 100 ? <Check className="size-4 text-foreground" /> : <Icon className="size-4" />}</div>
                           <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                            <div className="flex items-center justify-between gap-3"><span className="truncate text-sm font-medium">{item.label} · {item.focus}</span><span className="font-mono text-[10px] text-muted-foreground">{item.progress}%</span></div>
-                            <Progress className="h-1" value={item.progress} aria-label={item.label + " progress"} />
+                            <div className="flex items-center justify-between gap-3"><span className="truncate text-sm font-medium">{item.label} · {item.focus}</span><span className="font-mono text-[10px] text-muted-foreground">{item.progress === null ? "Unavailable" : `${item.progress}%`}</span></div>
+                            {item.progress === null ? <span className="text-xs text-muted-foreground">Saved progress unavailable. Retry to reload this roadmap.</span> : <Progress className="h-1" value={item.progress} aria-label={item.label + " progress"} />}
                             <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{item.meta}</span>
                           </div>
                           <ChevronRight className="hidden size-4 text-muted-foreground sm:block" />
@@ -237,12 +237,12 @@ export default async function Home() {
 
               <TabsContent className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]" value="labs">
                 <Card>
-                  <CardHeader className="border-b border-border"><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Practical sequence</CardDescription><div className="flex items-center justify-between gap-3"><CardTitle>Lab queue</CardTitle><Badge variant="outline">{labCompletion.completed} / {labCompletion.total}</Badge></div></CardHeader>
+                  <CardHeader className="border-b border-border"><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Practical sequence</CardDescription><div className="flex items-center justify-between gap-3"><CardTitle>Lab queue</CardTitle><Badge variant="outline">{labCompletion ? `${labCompletion.completed} / ${labCompletion.total}` : "Unavailable"}</Badge></div></CardHeader>
                   <CardContent className="flex flex-col gap-0 p-0">
                     {labs.map((lab) => (
                       <div className="flex flex-col gap-3 border-b border-border px-5 py-5 last:border-b-0 sm:flex-row sm:items-center sm:px-6" key={lab.id}>
                         <span className="font-mono text-xs text-muted-foreground">{lab.id}</span>
-                        <div className="flex min-w-0 flex-1 flex-col gap-1"><span className="font-medium">{lab.name}</span><span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{lab.type} · {lab.time}</span></div>
+                        <div className="flex min-w-0 flex-1 flex-col gap-1"><span className="font-medium">{lab.name}</span><span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{lab.type} · {lab.time} · evidence: {lab.evidence}</span></div>
                         <Badge variant={lab.state === "Next" ? "default" : lab.state === "Complete" ? "outline" : "secondary"}>{lab.state}</Badge>
                       </div>
                     ))}
@@ -268,7 +268,7 @@ export default async function Home() {
                   <CardContent className="flex flex-col gap-3 text-sm leading-6 text-muted-foreground"><p>Two fresh mixed assessments, no weak domain below the internal threshold, and independent configuration evidence.</p></CardContent>
                 </Card>
                 <QuizRunner />
-                <Card className="bg-muted/40"><CardHeader><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Quiz history</CardDescription><CardTitle>{latestAttempt ? `${calculateQuizScore(latestAttempt.score, latestAttempt.total_questions)}% latest` : "No attempts yet"}</CardTitle></CardHeader><CardContent className="flex flex-col gap-4">{dashboardData.attempts.length ? <><div aria-label="Quiz score trend" className="flex h-20 items-end gap-2 border-b border-border pb-3">{quizTrend.map((score, index) => <div className="flex min-w-0 flex-1 flex-col items-center gap-1" key={`${score}-${index}`}><div className="w-full rounded-sm bg-primary/80" style={{ height: `${Math.max(score, 8)}%` }} /><span className="font-mono text-[9px] text-muted-foreground">{score}%</span></div>)}</div>{dashboardData.attempts.slice(0, 5).map((attempt) => <div className="flex items-center justify-between gap-3 border-b border-border pb-2 last:border-0 last:pb-0" key={attempt.id}><span className="truncate text-sm">{(attempt.objective_ids.length ? attempt.objective_ids : [attempt.topic_id]).join(", ")} tagged checkpoint</span><span className="font-mono text-xs">{calculateQuizScore(attempt.score, attempt.total_questions)}%</span></div>)}</> : <p className="text-sm leading-6 text-muted-foreground">Complete a checkpoint to start your quiz trend.</p>}</CardContent></Card>
+                <Card className="bg-muted/40"><CardHeader><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Quiz history</CardDescription><CardTitle>{dataError ? "Unavailable" : latestAttempt ? `${calculateQuizScore(latestAttempt.score, latestAttempt.total_questions)}% latest` : "No attempts yet"}</CardTitle></CardHeader><CardContent className="flex flex-col gap-4">{dataError ? <p className="text-sm leading-6 text-muted-foreground">Saved quiz history is unavailable. Retry to reload it.</p> : dashboardData.attempts.length ? <><div aria-label="Quiz score trend" className="flex h-20 items-end gap-2 border-b border-border pb-3">{quizTrend.map((score, index) => <div className="flex min-w-0 flex-1 flex-col items-center gap-1" key={`${score}-${index}`}><div className="w-full rounded-sm bg-primary/80" style={{ height: `${Math.max(score, 8)}%` }} /><span className="font-mono text-[9px] text-muted-foreground">{score}%</span></div>)}</div>{dashboardData.attempts.slice(0, 5).map((attempt) => <div className="flex items-center justify-between gap-3 border-b border-border pb-2 last:border-0 last:pb-0" key={attempt.id}><span className="truncate text-sm">{(attempt.objective_ids.length ? attempt.objective_ids : [attempt.topic_id]).join(", ")} tagged checkpoint</span><span className="font-mono text-xs">{calculateQuizScore(attempt.score, attempt.total_questions)}%</span></div>)}</> : <p className="text-sm leading-6 text-muted-foreground">Complete a checkpoint to start your quiz trend.</p>}</CardContent></Card>
               </TabsContent>
             </Tabs>
           </div>

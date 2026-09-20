@@ -7,6 +7,7 @@ const {
   calculateQuizScore,
   calculateQuizTrend,
   calculateStudyStreak,
+  todayInTimeZone,
 } = await import("../src/lib/analytics.ts")
 
 test("calculates completion without exceeding the declared total", () => {
@@ -69,3 +70,12 @@ test("counts only consecutive days that reach 30 minutes", () => {
     2
   )
 })
+
+test("resolves the study date in the configured timezone", () => {
+  const instant = new Date("2026-09-20T16:30:00.000Z")
+  assert.equal(toDateKey(todayInTimeZone("Asia/Manila", instant)), "2026-09-21")
+})
+
+function toDateKey(date) {
+  return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-")
+}
