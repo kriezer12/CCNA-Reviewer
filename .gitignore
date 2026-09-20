@@ -1,0 +1,14 @@
+# Local source material and extracted text stay outside the repository.
+*.pdf
+/tmp/
+
+# Next.js app output and local dependencies.
+/web/node_modules/
+/web/.next/
+/web/.vercel/
+/web/.git/
+/web/.env*
+
+# Local tooling noise.
+*.tsbuildinfo
+npm-debug.log*
