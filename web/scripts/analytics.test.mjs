@@ -5,6 +5,7 @@ const {
   aggregateStudyMinutes,
   calculateCompletion,
   calculateQuizScore,
+  calculateQuizTrend,
   calculateStudyStreak,
 } = await import("../src/lib/analytics.ts")
 
@@ -20,6 +21,17 @@ test("calculates quiz score boundaries", () => {
   assert.equal(calculateQuizScore(8, 10), 80)
   assert.equal(calculateQuizScore(10, 0), 0)
   assert.equal(calculateQuizScore(12, 10), 100)
+})
+
+test("returns a chronological quiz score trend", () => {
+  assert.deepEqual(
+    calculateQuizTrend([
+      { score: 9, total_questions: 10 },
+      { score: 6, total_questions: 10 },
+      { score: 8, total_questions: 10 },
+    ]),
+    [80, 60, 90]
+  )
 })
 
 test("aggregates multiple sessions on one date", () => {
@@ -57,4 +69,3 @@ test("counts only consecutive days that reach 30 minutes", () => {
     2
   )
 })
-

@@ -34,25 +34,9 @@ import { ObjectiveProgressControl } from "@/components/dashboard/objective-progr
 import { QuizRunner } from "@/components/dashboard/quiz-runner"
 import { StudySessionForm } from "@/components/dashboard/study-session-form"
 import { curriculum } from "@/content/curriculum"
-import { calculateCompletion, calculateStudyStreak } from "@/lib/analytics"
+import { calculateCompletion, calculateQuizScore, calculateQuizTrend, calculateStudyStreak } from "@/lib/analytics"
 import { requireOwner } from "@/lib/supabase/auth"
 import { loadDashboardData, type DashboardData } from "@/lib/supabase/progress"
-
-const roadmap = curriculum.roadmap.weeks.map((week, index) => ({
-  label: `Week ${String(week.week).padStart(2, "0")}`,
-  meta: week.dates,
-  focus: week.focus,
-  progress: 0,
-  icon: [LayoutDashboard, PanelLeft, Route, ShieldCheck, Wifi][Math.min(Math.floor(index / 4), 4)],
-}))
-
-const labs = curriculum.labs.slice(5, 8).map((lab, index) => ({
-  id: lab.id,
-  name: lab.title,
-  type: lab.platform.primary,
-  time: `${lab.durationMinutes} min`,
-  state: index === 0 ? "Next" : "Queued",
-}))
 
 function Stat({ value, label }: { value: string; label: string }) {
   return (
@@ -81,6 +65,40 @@ export default async function Home() {
   const studyMinutes = dashboardData.sessions.reduce((total, session) => total + session.duration_minutes, 0)
   const streak = calculateStudyStreak(dashboardData.sessions)
   const latestAttempt = dashboardData.attempts[0]
+  const quizTrend = calculateQuizTrend(dashboardData.attempts)
+  const completedObjectiveIds = new Set(dashboardData.topics.filter((row) => row.status === "complete").map((row) => row.objective_id))
+  const roadmap = curriculum.roadmap.weeks.map((week, index) => {
+    const activityIds = new Set(week.activityIds)
+    const objectiveIds = new Set([
+      ...curriculum.labs.filter((lab) => activityIds.has(lab.id)).flatMap((lab) => lab.objectiveIds),
+      ...curriculum.browserActivities.filter((activity) => activityIds.has(activity.id)).flatMap((activity) => activity.objectiveIds),
+    ])
+    const completed = [...objectiveIds].filter((objectiveId) => completedObjectiveIds.has(objectiveId)).length
+    const progress = objectiveIds.size === 0 ? 0 : Math.round((completed / objectiveIds.size) * 100)
+    return {
+      label: `Week ${String(week.week).padStart(2, "0")}`,
+      meta: week.dates,
+      focus: week.focus,
+      progress,
+      icon: [LayoutDashboard, PanelLeft, Route, ShieldCheck, Wifi][Math.min(Math.floor(index / 4), 4)],
+    }
+  })
+  const completedWeeks = roadmap.filter((week) => week.progress === 100).length
+  const labProgressById = new Map(dashboardData.labs.map((row) => [row.lab_id, row]))
+  const labs = curriculum.labs
+    .map((lab) => ({ lab, row: labProgressById.get(lab.id) }))
+    .sort((a, b) => {
+      const statusRank = (status: string | undefined) => status === "complete" ? 2 : status === "in_progress" ? 0 : 1
+      return statusRank(a.row?.status) - statusRank(b.row?.status) || a.lab.week - b.lab.week
+    })
+    .slice(0, 3)
+    .map(({ lab, row }, index) => ({
+      id: lab.id,
+      name: lab.title,
+      type: lab.platform.primary,
+      time: `${lab.durationMinutes} min`,
+      state: row?.status === "complete" ? "Complete" : row?.status === "in_progress" ? "In progress" : index === 0 ? "Next" : "Queued",
+    }))
   const objectiveById = new Map<string, string>(curriculum.objectives.map((objective) => [objective.id, objective.title]))
   const labById = new Map<string, string>(curriculum.labs.map((lab) => [lab.id, lab.title]))
   const recentActivity = [
@@ -184,7 +202,7 @@ export default async function Home() {
                   <CardHeader className="border-b border-border">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex flex-col gap-1"><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Path to exam day</CardDescription><CardTitle>18-week roadmap</CardTitle></div>
-                      <Badge variant="outline">0 / {curriculum.roadmap.weeks.length} weeks</Badge>
+                      <Badge variant="outline">{completedWeeks} / {curriculum.roadmap.weeks.length} weeks</Badge>
                     </div>
                   </CardHeader>
                   <CardContent className="flex flex-col gap-0 p-0">
@@ -228,7 +246,7 @@ export default async function Home() {
                       <div className="flex flex-col gap-3 border-b border-border px-5 py-5 last:border-b-0 sm:flex-row sm:items-center sm:px-6" key={lab.id}>
                         <span className="font-mono text-xs text-muted-foreground">{lab.id}</span>
                         <div className="flex min-w-0 flex-1 flex-col gap-1"><span className="font-medium">{lab.name}</span><span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{lab.type} · {lab.time}</span></div>
-                        <Badge variant={lab.state === "Next" ? "default" : "secondary"}>{lab.state}</Badge>
+                        <Badge variant={lab.state === "Next" ? "default" : lab.state === "Complete" ? "outline" : "secondary"}>{lab.state}</Badge>
                       </div>
                     ))}
                   </CardContent>
@@ -253,7 +271,7 @@ export default async function Home() {
                   <CardContent className="flex flex-col gap-3 text-sm leading-6 text-muted-foreground"><p>Two fresh mixed assessments, no weak domain below the internal threshold, and independent configuration evidence.</p></CardContent>
                 </Card>
                 <QuizRunner />
-                <Card className="bg-muted/40"><CardHeader><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Quiz history</CardDescription><CardTitle>{latestAttempt ? `${latestAttempt.score}/${latestAttempt.total_questions}` : "No attempts yet"}</CardTitle></CardHeader><CardContent className="flex flex-col gap-3">{dashboardData.attempts.length ? dashboardData.attempts.slice(0, 5).map((attempt) => <div className="flex items-center justify-between gap-3 border-b border-border pb-2 last:border-0 last:pb-0" key={attempt.id}><span className="text-sm">{attempt.topic_id} tagged checkpoint</span><span className="font-mono text-xs">{attempt.score}/{attempt.total_questions}</span></div>) : <p className="text-sm leading-6 text-muted-foreground">Complete a checkpoint to start your quiz trend.</p>}</CardContent></Card>
+                <Card className="bg-muted/40"><CardHeader><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Quiz history</CardDescription><CardTitle>{latestAttempt ? `${calculateQuizScore(latestAttempt.score, latestAttempt.total_questions)}% latest` : "No attempts yet"}</CardTitle></CardHeader><CardContent className="flex flex-col gap-4">{dashboardData.attempts.length ? <><div aria-label="Quiz score trend" className="flex h-20 items-end gap-2 border-b border-border pb-3">{quizTrend.map((score, index) => <div className="flex min-w-0 flex-1 flex-col items-center gap-1" key={`${score}-${index}`}><div className="w-full rounded-sm bg-primary/80" style={{ height: `${Math.max(score, 8)}%` }} /><span className="font-mono text-[9px] text-muted-foreground">{score}%</span></div>)}</div>{dashboardData.attempts.slice(0, 5).map((attempt) => <div className="flex items-center justify-between gap-3 border-b border-border pb-2 last:border-0 last:pb-0" key={attempt.id}><span className="text-sm">{attempt.topic_id} tagged checkpoint</span><span className="font-mono text-xs">{calculateQuizScore(attempt.score, attempt.total_questions)}%</span></div>)}</> : <p className="text-sm leading-6 text-muted-foreground">Complete a checkpoint to start your quiz trend.</p>}</CardContent></Card>
               </TabsContent>
             </Tabs>
           </div>

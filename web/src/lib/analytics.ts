@@ -9,6 +9,11 @@ export interface StudySessionRecord {
   duration_minutes: number
 }
 
+export interface QuizScoreRecord {
+  score: number
+  total_questions: number
+}
+
 export function calculateCompletion(records: readonly ProgressRecord[], total: number) {
   const completed = records.filter((record) => record.status === "complete").length
   const safeTotal = Math.max(total, 0)
@@ -23,6 +28,13 @@ export function calculateCompletion(records: readonly ProgressRecord[], total: n
 export function calculateQuizScore(score: number, totalQuestions: number) {
   if (totalQuestions <= 0 || score <= 0) return 0
   return Math.round((Math.min(score, totalQuestions) / totalQuestions) * 100)
+}
+
+export function calculateQuizTrend(records: readonly QuizScoreRecord[]) {
+  return records
+    .slice(0, 10)
+    .reverse()
+    .map((record) => calculateQuizScore(record.score, record.total_questions))
 }
 
 export function aggregateStudyMinutes(sessions: readonly StudySessionRecord[]) {
