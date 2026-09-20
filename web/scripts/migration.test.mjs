@@ -12,6 +12,8 @@ const activityWriteContractMigrationPath = new URL("../../supabase/migrations/20
 const activityWriteContractMigration = await readFile(activityWriteContractMigrationPath, "utf8")
 const activityPrivilegesMigrationPath = new URL("../../supabase/migrations/20260920133526_restrict_activity_table_privileges.sql", import.meta.url)
 const activityPrivilegesMigration = await readFile(activityPrivilegesMigrationPath, "utf8")
+const functionSearchPathMigrationPath = new URL("../../supabase/migrations/20260920134818_fix_jsonb_function_search_path.sql", import.meta.url)
+const functionSearchPathMigration = await readFile(functionSearchPathMigrationPath, "utf8")
 
 test("progress migration declares all user-owned tables and constraints", () => {
   for (const table of ["topic_progress", "lab_progress", "study_sessions", "quiz_attempts"]) {
@@ -61,4 +63,9 @@ test("personal tables do not expose administrative table privileges", () => {
   for (const table of ["topic_progress", "lab_progress", "study_sessions", "quiz_attempts"]) {
     assert.match(activityPrivilegesMigration, new RegExp(`revoke truncate, references, trigger on table public\\.${table} from authenticated`))
   }
+})
+
+test("database helper functions pin their search path", () => {
+  assert.match(functionSearchPathMigration, /alter function public\.ccna_jsonb_object_count\(jsonb\)/)
+  assert.match(functionSearchPathMigration, /set search_path = pg_catalog/)
 })
