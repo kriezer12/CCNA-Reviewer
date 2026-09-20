@@ -12,7 +12,7 @@ This checklist records the release evidence for the private CCNA Reviewer previe
 
 ## Verified against Supabase
 
-- Migrations through `20260920134818_fix_jsonb_function_search_path.sql` are applied to project `ynhlrrfimhburaeaqezz`.
+- Migrations through `20260920135330_grant_jsonb_function_execute.sql` are applied to project `ynhlrrfimhburaeaqezz`.
 - `topic_progress`, `lab_progress`, `study_sessions`, and `quiz_attempts` have RLS enabled and owner-scoped policies.
 - Anonymous table privileges are revoked. Study sessions and quiz attempts are append-only for the authenticated role.
 - Canonical objective, lab, quiz, answer-count, and lab-evidence constraints are present.
@@ -21,7 +21,8 @@ This checklist records the release evidence for the private CCNA Reviewer previe
 ## Verified against Vercel
 
 - The GitHub-connected `ccna-reviewer` project builds from the `web/` root directory.
-- The latest preview for PR #10 is Ready: https://ccna-reviewer-q8n7q9wyg-kriezer12s-projects.vercel.app
+- The latest preview for PR #10 is Ready: https://ccna-reviewer-5a57qanle-kriezer12s-projects.vercel.app
+- Vercel Deployment Protection currently places an account gate in front of the preview; owner browser verification must be performed while signed into the Vercel project or after the protection setting is adjusted.
 - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are configured for Preview and Production. The publishable key is public by design.
 - The preview and production callback URLs are listed in Supabase Auth configuration.
 
