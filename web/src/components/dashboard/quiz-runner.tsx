@@ -11,7 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { curriculum, type DomainId } from "@/content/curriculum"
 import { quizQuestions, validateQuizSubmission } from "@/content/quizzes"
 import { calculateQuizScore } from "@/lib/analytics"
-import { createClient } from "@/lib/supabase/client"
 
 export function QuizRunner() {
   const router = useRouter()
@@ -32,13 +31,12 @@ export function QuizRunner() {
   async function submit() {
     if (!validateQuizSubmission(questions, answers)) { setState("error"); return }
     setState("saving")
-    const supabase = createClient()
-    const { data: userData, error: userError } = await supabase.auth.getUser()
-    if (userError || !userData.user) { setState("error"); return }
-    const firstQuestion = questions[0]
-    if (!firstQuestion) { setState("error"); return }
-    const { error } = await supabase.from("quiz_attempts").insert({ user_id: userData.user.id, quiz_id: firstQuestion.quizId, topic_id: firstQuestion.objectiveIds[0], score, total_questions: questions.length, selected_answers: answers })
-    if (error) { setState("error"); return }
+    const response = await fetch("/api/quiz-attempts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ domainId, answers }),
+    })
+    if (!response.ok) { setState("error"); return }
     setSubmitted(true)
     setState("saved")
     router.refresh()

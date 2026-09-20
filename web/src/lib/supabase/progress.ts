@@ -30,6 +30,7 @@ export interface QuizAttemptRow {
   id: string
   quiz_id: string
   topic_id: string
+  objective_ids: string[]
   score: number
   total_questions: number
   selected_answers: Record<string, string>
@@ -49,7 +50,7 @@ export async function loadDashboardData(userId: string): Promise<DashboardData> 
     supabase.from("topic_progress").select("objective_id,status,completed_at,updated_at").eq("user_id", userId),
     supabase.from("lab_progress").select("lab_id,status,evidence_mode,evidence_note,completed_at,updated_at").eq("user_id", userId),
     supabase.from("study_sessions").select("id,study_date,duration_minutes,objective_id,lab_id,notes,created_at").eq("user_id", userId).order("study_date", { ascending: false }),
-    supabase.from("quiz_attempts").select("id,quiz_id,topic_id,score,total_questions,selected_answers,attempted_at").eq("user_id", userId).order("attempted_at", { ascending: false }),
+    supabase.from("quiz_attempts").select("id,quiz_id,topic_id,objective_ids,score,total_questions,selected_answers,attempted_at").eq("user_id", userId).order("attempted_at", { ascending: false }),
   ])
 
   const error = topics.error ?? labs.error ?? sessions.error ?? attempts.error
@@ -62,4 +63,3 @@ export async function loadDashboardData(userId: string): Promise<DashboardData> 
     attempts: (attempts.data ?? []) as QuizAttemptRow[],
   }
 }
-

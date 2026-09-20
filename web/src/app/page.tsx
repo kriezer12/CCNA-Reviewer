@@ -33,6 +33,7 @@ import { LabProgressControl } from "@/components/dashboard/lab-progress-control"
 import { ObjectiveProgressControl } from "@/components/dashboard/objective-progress-control"
 import { QuizRunner } from "@/components/dashboard/quiz-runner"
 import { StudySessionForm } from "@/components/dashboard/study-session-form"
+import { RetryButton } from "@/components/dashboard/retry-button"
 import { curriculum } from "@/content/curriculum"
 import { calculateCompletion, calculateQuizScore, calculateQuizTrend, calculateStudyStreak } from "@/lib/analytics"
 import { requireOwner } from "@/lib/supabase/auth"
@@ -85,27 +86,23 @@ export default async function Home() {
   })
   const completedWeeks = roadmap.filter((week) => week.progress === 100).length
   const labProgressById = new Map(dashboardData.labs.map((row) => [row.lab_id, row]))
-  const labs = curriculum.labs
-    .map((lab) => ({ lab, row: labProgressById.get(lab.id) }))
-    .sort((a, b) => {
-      const statusRank = (status: string | undefined) => status === "complete" ? 2 : status === "in_progress" ? 0 : 1
-      return statusRank(a.row?.status) - statusRank(b.row?.status) || a.lab.week - b.lab.week
-    })
-    .slice(0, 3)
-    .map(({ lab, row }, index) => ({
+  const labs = curriculum.labs.slice(5, 8).map((lab, index) => {
+    const row = labProgressById.get(lab.id)
+    return {
       id: lab.id,
       name: lab.title,
       type: lab.platform.primary,
       time: `${lab.durationMinutes} min`,
       state: row?.status === "complete" ? "Complete" : row?.status === "in_progress" ? "In progress" : index === 0 ? "Next" : "Queued",
-    }))
+    }
+  })
   const objectiveById = new Map<string, string>(curriculum.objectives.map((objective) => [objective.id, objective.title]))
   const labById = new Map<string, string>(curriculum.labs.map((lab) => [lab.id, lab.title]))
   const recentActivity = [
     ...dashboardData.topics.map((row) => ({ label: `${row.objective_id} · ${objectiveById.get(row.objective_id) ?? "Objective"}`, detail: `Lesson ${row.status.replace("_", " ")}`, date: row.updated_at })),
     ...dashboardData.labs.map((row) => ({ label: `${row.lab_id} · ${labById.get(row.lab_id) ?? "Lab"}`, detail: `Lab ${row.status.replace("_", " ")} · ${row.evidence_mode.replace("_", " ")}`, date: row.updated_at })),
     ...dashboardData.sessions.map((row) => ({ label: `${row.duration_minutes} minutes recorded`, detail: row.notes ?? "Study session", date: row.created_at })),
-    ...dashboardData.attempts.map((row) => ({ label: `${row.score}/${row.total_questions} quiz attempt`, detail: `${row.quiz_id} · ${row.topic_id}`, date: row.attempted_at })),
+    ...dashboardData.attempts.map((row) => ({ label: `${row.score}/${row.total_questions} quiz attempt`, detail: `${row.quiz_id} · ${(row.objective_ids.length ? row.objective_ids : [row.topic_id]).join(", ")}`, date: row.attempted_at })),
   ].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 6)
 
   return (
@@ -184,7 +181,7 @@ export default async function Home() {
               <Stat value={String(streak).padStart(2, "0")} label="30-minute streak" />
             </section>
 
-            {dataError ? <Card className="border-destructive/50 bg-destructive/5"><CardContent className="pt-6"><p className="text-sm text-destructive" role="alert">{dataError} Refresh the page and retry.</p></CardContent></Card> : null}
+            {dataError ? <Card className="border-destructive/50 bg-destructive/5"><CardContent className="flex items-center justify-between gap-4 pt-6"><p className="text-sm text-destructive" role="alert">{dataError}</p><RetryButton /></CardContent></Card> : null}
 
             <Card><CardHeader><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Saved activity</CardDescription><CardTitle>Recent activity</CardTitle></CardHeader><CardContent className="flex flex-col gap-3">{recentActivity.length ? recentActivity.map((activity, index) => <div className="flex items-start justify-between gap-4 border-b border-border pb-3 last:border-0 last:pb-0" key={`${activity.date}-${index}`}><div className="flex min-w-0 flex-col gap-1"><span className="truncate text-sm font-medium">{activity.label}</span><span className="truncate text-xs text-muted-foreground">{activity.detail}</span></div><span className="shrink-0 font-mono text-[10px] text-muted-foreground">{activity.date.slice(0, 10)}</span></div>) : <p className="text-sm leading-6 text-muted-foreground">No saved activity yet. Record a lesson, lab, session, or quiz to see it here.</p>}</CardContent></Card>
 
@@ -271,7 +268,7 @@ export default async function Home() {
                   <CardContent className="flex flex-col gap-3 text-sm leading-6 text-muted-foreground"><p>Two fresh mixed assessments, no weak domain below the internal threshold, and independent configuration evidence.</p></CardContent>
                 </Card>
                 <QuizRunner />
-                <Card className="bg-muted/40"><CardHeader><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Quiz history</CardDescription><CardTitle>{latestAttempt ? `${calculateQuizScore(latestAttempt.score, latestAttempt.total_questions)}% latest` : "No attempts yet"}</CardTitle></CardHeader><CardContent className="flex flex-col gap-4">{dashboardData.attempts.length ? <><div aria-label="Quiz score trend" className="flex h-20 items-end gap-2 border-b border-border pb-3">{quizTrend.map((score, index) => <div className="flex min-w-0 flex-1 flex-col items-center gap-1" key={`${score}-${index}`}><div className="w-full rounded-sm bg-primary/80" style={{ height: `${Math.max(score, 8)}%` }} /><span className="font-mono text-[9px] text-muted-foreground">{score}%</span></div>)}</div>{dashboardData.attempts.slice(0, 5).map((attempt) => <div className="flex items-center justify-between gap-3 border-b border-border pb-2 last:border-0 last:pb-0" key={attempt.id}><span className="text-sm">{attempt.topic_id} tagged checkpoint</span><span className="font-mono text-xs">{calculateQuizScore(attempt.score, attempt.total_questions)}%</span></div>)}</> : <p className="text-sm leading-6 text-muted-foreground">Complete a checkpoint to start your quiz trend.</p>}</CardContent></Card>
+                <Card className="bg-muted/40"><CardHeader><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Quiz history</CardDescription><CardTitle>{latestAttempt ? `${calculateQuizScore(latestAttempt.score, latestAttempt.total_questions)}% latest` : "No attempts yet"}</CardTitle></CardHeader><CardContent className="flex flex-col gap-4">{dashboardData.attempts.length ? <><div aria-label="Quiz score trend" className="flex h-20 items-end gap-2 border-b border-border pb-3">{quizTrend.map((score, index) => <div className="flex min-w-0 flex-1 flex-col items-center gap-1" key={`${score}-${index}`}><div className="w-full rounded-sm bg-primary/80" style={{ height: `${Math.max(score, 8)}%` }} /><span className="font-mono text-[9px] text-muted-foreground">{score}%</span></div>)}</div>{dashboardData.attempts.slice(0, 5).map((attempt) => <div className="flex items-center justify-between gap-3 border-b border-border pb-2 last:border-0 last:pb-0" key={attempt.id}><span className="truncate text-sm">{(attempt.objective_ids.length ? attempt.objective_ids : [attempt.topic_id]).join(", ")} tagged checkpoint</span><span className="font-mono text-xs">{calculateQuizScore(attempt.score, attempt.total_questions)}%</span></div>)}</> : <p className="text-sm leading-6 text-muted-foreground">Complete a checkpoint to start your quiz trend.</p>}</CardContent></Card>
               </TabsContent>
             </Tabs>
           </div>

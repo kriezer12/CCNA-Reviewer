@@ -36,7 +36,7 @@ export function LabProgressControl({ labs, initialRows }: { labs: readonly Lab[]
   }
 
   async function save() {
-    if (!labs.some((lab) => lab.id === labId)) { setState("error"); return }
+    if (!labs.some((lab) => lab.id === labId) || (status === "complete" && !evidenceNote.trim())) { setState("error"); return }
     setState("saving")
     const supabase = createClient()
     const { data: userData, error: userError } = await supabase.auth.getUser()
@@ -73,7 +73,7 @@ export function LabProgressControl({ labs, initialRows }: { labs: readonly Lab[]
         </div>
         <Textarea aria-label="Evidence note" value={evidenceNote} onChange={(event) => { setEvidenceNote(event.target.value); setState("idle") }} placeholder="Topology, output, test result, or simulator limitation" />
         <Button disabled={state === "saving" || !labId} onClick={save}>{state === "saving" ? <LoaderCircle className="animate-spin" /> : state === "saved" ? <Check /> : null}{state === "saved" ? "Saved" : "Save lab evidence"}</Button>
-        {state === "error" ? <p className="text-sm text-destructive" role="alert">Could not save this lab. Check the connection and retry.</p> : null}
+        {state === "error" ? <p className="text-sm text-destructive" role="alert">Could not save this lab. A completed demonstration needs an evidence note; check the connection and retry.</p> : null}
       </CardContent>
     </Card>
   )
