@@ -24,6 +24,8 @@ _Avoid_: Automatic verification unless a real checker exists
 The number and percentage of the 53 objectives whose lesson-understanding requirement is complete. It is reported separately from labs, quizzes, study time, and streak.
 _Avoid_: Blended progress score
 
+The Supabase compatibility tables retain the names `topic_progress` and `topic_id` from the approved data model, but their values are canonical objective IDs. Product copy and curriculum code use **objective** consistently.
+
 ## Activity language
 
 **Study session**:

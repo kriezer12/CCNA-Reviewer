@@ -6,10 +6,17 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:curriculum": "node --experimental-strip-types --experimental-transform-types scripts/curriculum-registry.test.mjs",
+    "test:analytics": "node --experimental-strip-types --experimental-transform-types scripts/analytics.test.mjs",
+    "test:quizzes": "node --experimental-strip-types --experimental-transform-types scripts/quizzes.test.mjs",
+    "test:migration": "node --test scripts/migration.test.mjs",
+    "test:auth": "node --experimental-strip-types --experimental-transform-types scripts/auth.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.116.0",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.3.0",
     "lucide-react": "^1.47.0",

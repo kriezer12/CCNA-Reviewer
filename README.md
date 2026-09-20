@@ -21,6 +21,10 @@ The first 10% prototype lives in [web/](web/). It contains a responsive learner 
 
 The supplied reference PDFs are intentionally excluded from Git and Vercel. The repository contains source links and chapter/page locators instead.
 
+## Authenticated progress
+
+The dashboard stores objective progress, lab evidence, study sessions, and quiz attempts in Supabase Postgres behind authenticated row-level security. Set up the owner account and Google OAuth using [docs/setup/supabase-auth.md](docs/setup/supabase-auth.md), then add the variables from `web/.env.example` to `web/.env.local`.
+
 ## Local development
 
 ~~~bash
@@ -34,4 +38,9 @@ Checks:
 ~~~bash
 npm run lint
 npm run build
+npm run test:curriculum
+npm run test:analytics
+npm run test:quizzes
+npm run test:migration
+npm run test:auth
 ~~~
