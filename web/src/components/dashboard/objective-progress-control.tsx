@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Check, LoaderCircle } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -20,6 +21,7 @@ export function ObjectiveProgressControl({
   objectives: readonly Objective[]
   initialRows: readonly TopicProgressRow[]
 }) {
+  const router = useRouter()
   const initial = useMemo(() => new Map(initialRows.map((row) => [row.objective_id, row.status])), [initialRows])
   const [objectiveId, setObjectiveId] = useState<string>(objectives[0]?.id ?? "")
   const [status, setStatus] = useState<Status>(initial.get(objectives[0]?.id ?? "") ?? "not_started")
@@ -53,6 +55,7 @@ export function ObjectiveProgressControl({
     )
 
     setState(error ? "error" : "saved")
+    if (!error) router.refresh()
   }
 
   const selectedObjective = objectives.find((objective) => objective.id === objectiveId)

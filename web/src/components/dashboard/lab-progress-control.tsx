@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Check, LoaderCircle } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -16,6 +17,7 @@ type Status = "not_started" | "in_progress" | "complete"
 type EvidenceMode = "self_reported" | "verified"
 
 export function LabProgressControl({ labs, initialRows }: { labs: readonly Lab[]; initialRows: readonly LabProgressRow[] }) {
+  const router = useRouter()
   const initial = useMemo(() => new Map(initialRows.map((row) => [row.lab_id, row])), [initialRows])
   const [labId, setLabId] = useState<string>(labs[0]?.id ?? "")
   const [status, setStatus] = useState<Status>(initial.get(labs[0]?.id ?? "")?.status ?? "not_started")
@@ -48,6 +50,7 @@ export function LabProgressControl({ labs, initialRows }: { labs: readonly Lab[]
       updated_at: new Date().toISOString(),
     }, { onConflict: "user_id,lab_id" })
     setState(error ? "error" : "saved")
+    if (!error) router.refresh()
   }
 
   const selectedLab = labs.find((lab) => lab.id === labId)

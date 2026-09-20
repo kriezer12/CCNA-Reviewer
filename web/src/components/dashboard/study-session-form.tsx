@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Check, LoaderCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -10,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { createClient } from "@/lib/supabase/client"
 
 export function StudySessionForm() {
+  const router = useRouter()
   const [studyDate, setStudyDate] = useState("")
   const [duration, setDuration] = useState(30)
   const [notes, setNotes] = useState("")
@@ -26,6 +28,7 @@ export function StudySessionForm() {
     if (error) { setState("error"); return }
     setNotes("")
     setState("saved")
+    router.refresh()
   }
 
   return (
@@ -40,4 +43,3 @@ export function StudySessionForm() {
     </Card>
   )
 }
-

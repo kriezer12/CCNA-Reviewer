@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Check, CircleAlert, LoaderCircle } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -11,6 +12,7 @@ import { calculateQuizScore } from "@/lib/analytics"
 import { createClient } from "@/lib/supabase/client"
 
 export function QuizRunner() {
+  const router = useRouter()
   const questions = useMemo(() => quizQuestions.filter((question) => question.domainId === "1.0"), [])
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [submitted, setSubmitted] = useState(false)
@@ -28,6 +30,7 @@ export function QuizRunner() {
     if (error) { setState("error"); return }
     setSubmitted(true)
     setState("saved")
+    router.refresh()
   }
 
   return (
@@ -41,4 +44,3 @@ export function QuizRunner() {
     </Card>
   )
 }
-
