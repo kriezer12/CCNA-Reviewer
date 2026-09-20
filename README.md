@@ -2,15 +2,17 @@
 
 CCNA 200-301 v1.1 study system for a technical support schedule of 1–2 hours per day.
 
-## Prototype
+## App areas
 
-The first 10% prototype lives in [web/](web/). It contains a responsive learner dashboard with:
+The protected Next.js app in [web/](web/) keeps the dashboard short and routes focused study work into separate areas:
 
-- an 18-week roadmap progress view;
-- a focused Rapid PVST+ study session;
-- a lab queue with evidence requirements;
-- a six-domain blueprint view;
-- responsive phone and desktop layouts using shadcn/ui components.
+- `/` — progress context, recommendations, recent activity, and analytics;
+- `/roadmap` — the 18-week sequence and objective understanding controls;
+- `/labs` — the lab queue, evidence controls, and study-session logger;
+- `/command-drills` — short IOS retrieval prompts;
+- `/readiness` — coverage, lab evidence, study signals, and mixed checkpoints.
+
+All areas use the same responsive shadcn/ui shell on phone and desktop.
 
 ## Curriculum
 
@@ -43,4 +45,5 @@ npm run test:analytics
 npm run test:quizzes
 npm run test:migration
 npm run test:auth
+npm run test:navigation
 ~~~
