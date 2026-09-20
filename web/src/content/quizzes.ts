@@ -131,3 +131,11 @@ export function validateQuizBank(questions: readonly QuizQuestion[] = quizQuesti
 
   return { valid: errors.length === 0, errors }
 }
+
+export function validateQuizSubmission(questions: readonly QuizQuestion[], answers: Readonly<Record<string, string>>) {
+  if (questions.length === 0 || Object.keys(answers).length !== questions.length) return false
+  return questions.every((question) => {
+    const selected = answers[question.id]
+    return Boolean(selected) && question.choices.some((choice) => choice.id === selected)
+  })
+}

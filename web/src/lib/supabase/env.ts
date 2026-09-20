@@ -24,3 +24,6 @@ export function normalizeEmail(email: string | null | undefined) {
   return email?.trim().toLowerCase() ?? ""
 }
 
+export function isAllowedEmail(email: string | null | undefined, allowedEmail: string) {
+  return normalizeEmail(email) === normalizeEmail(allowedEmail) && normalizeEmail(email).length > 0
+}

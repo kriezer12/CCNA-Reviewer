@@ -35,6 +35,7 @@ export function ObjectiveProgressControl({
   }
 
   async function save() {
+    if (!objectives.some((objective) => objective.id === objectiveId)) { setState("error"); return }
     setState("saving")
     const supabase = createClient()
     const { data: userData, error: userError } = await supabase.auth.getUser()

@@ -81,6 +81,14 @@ export default async function Home() {
   const studyMinutes = dashboardData.sessions.reduce((total, session) => total + session.duration_minutes, 0)
   const streak = calculateStudyStreak(dashboardData.sessions)
   const latestAttempt = dashboardData.attempts[0]
+  const objectiveById = new Map<string, string>(curriculum.objectives.map((objective) => [objective.id, objective.title]))
+  const labById = new Map<string, string>(curriculum.labs.map((lab) => [lab.id, lab.title]))
+  const recentActivity = [
+    ...dashboardData.topics.map((row) => ({ label: `${row.objective_id} · ${objectiveById.get(row.objective_id) ?? "Objective"}`, detail: `Lesson ${row.status.replace("_", " ")}`, date: row.updated_at })),
+    ...dashboardData.labs.map((row) => ({ label: `${row.lab_id} · ${labById.get(row.lab_id) ?? "Lab"}`, detail: `Lab ${row.status.replace("_", " ")} · ${row.evidence_mode.replace("_", " ")}`, date: row.updated_at })),
+    ...dashboardData.sessions.map((row) => ({ label: `${row.duration_minutes} minutes recorded`, detail: row.notes ?? "Study session", date: row.created_at })),
+    ...dashboardData.attempts.map((row) => ({ label: `${row.score}/${row.total_questions} quiz attempt`, detail: `${row.quiz_id} · ${row.topic_id}`, date: row.attempted_at })),
+  ].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 6)
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -120,7 +128,7 @@ export default async function Home() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Badge className="hidden font-mono text-[10px] uppercase tracking-[0.12em] sm:inline-flex" variant="outline">6 day streak</Badge>
+              <Badge className="hidden font-mono text-[10px] uppercase tracking-[0.12em] sm:inline-flex" variant="outline">{streak ? `${streak} day streak` : "No streak yet"}</Badge>
               <LogoutButton />
             </div>
           </header>
@@ -159,6 +167,8 @@ export default async function Home() {
             </section>
 
             {dataError ? <Card className="border-destructive/50 bg-destructive/5"><CardContent className="pt-6"><p className="text-sm text-destructive" role="alert">{dataError} Refresh the page and retry.</p></CardContent></Card> : null}
+
+            <Card><CardHeader><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Saved activity</CardDescription><CardTitle>Recent activity</CardTitle></CardHeader><CardContent className="flex flex-col gap-3">{recentActivity.length ? recentActivity.map((activity, index) => <div className="flex items-start justify-between gap-4 border-b border-border pb-3 last:border-0 last:pb-0" key={`${activity.date}-${index}`}><div className="flex min-w-0 flex-col gap-1"><span className="truncate text-sm font-medium">{activity.label}</span><span className="truncate text-xs text-muted-foreground">{activity.detail}</span></div><span className="shrink-0 font-mono text-[10px] text-muted-foreground">{activity.date.slice(0, 10)}</span></div>) : <p className="text-sm leading-6 text-muted-foreground">No saved activity yet. Record a lesson, lab, session, or quiz to see it here.</p>}</CardContent></Card>
 
             <Tabs className="flex flex-col gap-6" defaultValue="roadmap">
               <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
@@ -228,7 +238,7 @@ export default async function Home() {
                   <CardContent className="flex flex-col gap-3 text-sm leading-6 text-muted-foreground"><p>Save the topology, show output, and the desired/forbidden connectivity checks.</p><Separator /><p>Phone time prepares the lab. Desktop time configures it.</p></CardContent>
                 </Card>
                 <LabProgressControl labs={curriculum.labs} initialRows={dashboardData.labs} />
-                <StudySessionForm />
+                <StudySessionForm objectives={curriculum.objectives} labs={curriculum.labs} />
               </TabsContent>
 
               <TabsContent className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]" value="blueprint">
@@ -243,7 +253,7 @@ export default async function Home() {
                   <CardContent className="flex flex-col gap-3 text-sm leading-6 text-muted-foreground"><p>Two fresh mixed assessments, no weak domain below the internal threshold, and independent configuration evidence.</p></CardContent>
                 </Card>
                 <QuizRunner />
-                <Card className="bg-muted/40"><CardHeader><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Quiz history</CardDescription><CardTitle>{latestAttempt ? `${latestAttempt.score}/${latestAttempt.total_questions}` : "No attempts yet"}</CardTitle></CardHeader><CardContent><p className="text-sm leading-6 text-muted-foreground">{latestAttempt ? "Latest saved checkpoint score." : "Complete a checkpoint to start your quiz trend."}</p></CardContent></Card>
+                <Card className="bg-muted/40"><CardHeader><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Quiz history</CardDescription><CardTitle>{latestAttempt ? `${latestAttempt.score}/${latestAttempt.total_questions}` : "No attempts yet"}</CardTitle></CardHeader><CardContent className="flex flex-col gap-3">{dashboardData.attempts.length ? dashboardData.attempts.slice(0, 5).map((attempt) => <div className="flex items-center justify-between gap-3 border-b border-border pb-2 last:border-0 last:pb-0" key={attempt.id}><span className="text-sm">{attempt.topic_id} tagged checkpoint</span><span className="font-mono text-xs">{attempt.score}/{attempt.total_questions}</span></div>) : <p className="text-sm leading-6 text-muted-foreground">Complete a checkpoint to start your quiz trend.</p>}</CardContent></Card>
               </TabsContent>
             </Tabs>
           </div>

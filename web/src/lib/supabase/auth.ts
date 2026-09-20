@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 
-import { getAllowedEmail, normalizeEmail } from "./env"
+import { getAllowedEmail, isAllowedEmail } from "./env"
 import { createClient } from "./server"
 
 export async function requireOwner() {
@@ -13,11 +13,10 @@ export async function requireOwner() {
     redirect("/login?error=auth-required")
   }
 
-  if (normalizeEmail(user.email) !== getAllowedEmail()) {
+  if (!isAllowedEmail(user.email, getAllowedEmail())) {
     await supabase.auth.signOut()
     redirect("/login?error=not-allowed")
   }
 
   return user
 }
-

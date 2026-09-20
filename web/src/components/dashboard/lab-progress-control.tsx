@@ -36,6 +36,7 @@ export function LabProgressControl({ labs, initialRows }: { labs: readonly Lab[]
   }
 
   async function save() {
+    if (!labs.some((lab) => lab.id === labId)) { setState("error"); return }
     setState("saving")
     const supabase = createClient()
     const { data: userData, error: userError } = await supabase.auth.getUser()
