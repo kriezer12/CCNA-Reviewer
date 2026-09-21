@@ -12,6 +12,7 @@
     "test:quizzes": "node --experimental-strip-types --experimental-transform-types scripts/quizzes.test.mjs",
     "test:migration": "node --test scripts/migration.test.mjs",
     "test:navigation": "node --test scripts/navigation.test.mjs",
+    "test:roadmap": "node --experimental-strip-types --experimental-transform-types scripts/roadmap.test.mjs",
     "test:auth": "node --experimental-strip-types --experimental-transform-types scripts/auth.test.mjs"
   },
   "dependencies": {

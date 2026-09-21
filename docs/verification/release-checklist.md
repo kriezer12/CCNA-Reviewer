@@ -6,7 +6,7 @@ This checklist records the release evidence for the private CCNA Reviewer previe
 
 - The production build, TypeScript check, lint, curriculum registry checks, analytics checks, quiz checks, auth checks, and migration checks pass from `web/`.
 - The dashboard login surface contains email/password and Google only. Apple OAuth and public signup copy are removed.
-- Unauthenticated requests to `/`, `/roadmap`, `/labs`, `/command-drills`, and `/readiness` redirect to `/login?error=auth-required`.
+- Unauthenticated requests to `/`, `/roadmap`, `/roadmap/week/01`, `/labs`, `/command-drills`, and `/readiness` redirect to `/login?error=auth-required`.
 - User activity is read from Supabase; no progress or analytics value uses localStorage.
 - Curriculum platform boundaries and simulator limitations are recorded in `web/src/content/curriculum.ts` and `docs/curriculum/lab-courses.md`.
 

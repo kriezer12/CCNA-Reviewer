@@ -7,7 +7,7 @@ CCNA 200-301 v1.1 study system for a technical support schedule of 1–2 hours p
 The protected Next.js app in [web/](web/) keeps the dashboard short and routes focused study work into separate areas:
 
 - `/` — progress context, recommendations, recent activity, and analytics;
-- `/roadmap` — the 18-week sequence and objective understanding controls;
+- `/roadmap` — the 18-week sequence and objective understanding controls; each week opens at `/roadmap/week/01` through `/roadmap/week/18`;
 - `/labs` — the lab queue, evidence controls, and study-session logger;
 - `/command-drills` — short IOS retrieval prompts;
 - `/readiness` — coverage, lab evidence, study signals, and mixed checkpoints.
@@ -46,4 +46,5 @@ npm run test:quizzes
 npm run test:migration
 npm run test:auth
 npm run test:navigation
+npm run test:roadmap
 ~~~

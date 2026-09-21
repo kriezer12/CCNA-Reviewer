@@ -15,12 +15,16 @@ import {
 } from "@/lib/analytics"
 import { curriculum } from "@/content/curriculum"
 import { loadDashboardData, type DashboardData } from "@/lib/supabase/progress"
+import { getRoadmapHref, getRoadmapWeekObjectiveIds } from "@/lib/roadmap-model"
 
 export interface RoadmapRow {
+  week: number
   label: string
   meta: string
   focus: string
   progress: number | null
+  activityCount: number
+  href: string
   icon: LucideIcon
 }
 
@@ -72,7 +76,21 @@ export async function loadDashboardModel(userId: string): Promise<DashboardModel
   const latestAttempt = dataError ? undefined : data.attempts[0]
   const quizTrend = dataError ? [] : calculateQuizTrend(data.attempts)
   const completedObjectiveIds = new Set(data.topics.filter((row) => row.status === "complete").map((row) => row.objective_id))
-  const roadmap = buildRoadmap(completedObjectiveIds, dataError)
+  const roadmap = curriculum.roadmap.weeks.map((week, index) => {
+    const objectiveIds = getRoadmapWeekObjectiveIds(week)
+    const completed = objectiveIds.filter((objectiveId) => completedObjectiveIds.has(objectiveId)).length
+    const progress = dataError ? null : objectiveIds.length === 0 ? 0 : Math.round((completed / objectiveIds.length) * 100)
+    return {
+      week: week.week,
+      label: `Week ${String(week.week).padStart(2, "0")}`,
+      meta: week.dates,
+      focus: week.focus,
+      progress,
+      activityCount: week.activityIds.length,
+      href: getRoadmapHref(week.week),
+      icon: [LayoutDashboard, PanelLeft, Route, ShieldCheck, Wifi][Math.min(Math.floor(index / 4), 4)],
+    }
+  })
   const completedWeeks = dataError ? null : roadmap.filter((week) => week.progress === 100).length
   const labProgressById = new Map(data.labs.map((row) => [row.lab_id, row]))
   const labs = curriculum.labs.slice(5, 8).map((lab, index) => {
@@ -110,25 +128,6 @@ export async function loadDashboardModel(userId: string): Promise<DashboardModel
     labs,
     recentActivity,
   }
-}
-
-function buildRoadmap(completedObjectiveIds: Set<string>, dataError: string | null): RoadmapRow[] {
-  return curriculum.roadmap.weeks.map((week, index) => {
-    const activityIds = new Set(week.activityIds)
-    const objectiveIds = new Set([
-      ...curriculum.labs.filter((lab) => activityIds.has(lab.id)).flatMap((lab) => lab.objectiveIds),
-      ...curriculum.browserActivities.filter((activity) => activityIds.has(activity.id)).flatMap((activity) => activity.objectiveIds),
-    ])
-    const completed = [...objectiveIds].filter((objectiveId) => completedObjectiveIds.has(objectiveId)).length
-    const progress = dataError ? null : objectiveIds.size === 0 ? 0 : Math.round((completed / objectiveIds.size) * 100)
-    return {
-      label: `Week ${String(week.week).padStart(2, "0")}`,
-      meta: week.dates,
-      focus: week.focus,
-      progress,
-      icon: [LayoutDashboard, PanelLeft, Route, ShieldCheck, Wifi][Math.min(Math.floor(index / 4), 4)],
-    }
-  })
 }
 
 export { calculateQuizScore }
