@@ -21,4 +21,5 @@ const roadmapDetailPage = await readFile(join(webDirectory, "src", "app", "roadm
 assert.match(roadmapPage, /href=\{item\.href\}/)
 assert.match(roadmapPage, /Open \$\{item\.label\} detail/)
 assert.match(roadmapDetailPage, /getRoadmapWeek\(weekParam\)/)
+assert.match(roadmapDetailPage, /const user = await requireOwner\(\)/)
 console.log("navigation route checks passed")

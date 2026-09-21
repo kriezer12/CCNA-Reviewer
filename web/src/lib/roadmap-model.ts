@@ -1,10 +1,18 @@
-import { curriculum, type BrowserActivity, type Lab, type Objective, type ObjectiveId, type RoadmapWeek } from "../content/curriculum.ts"
+import { curriculum, type BrowserActivity, type Lab, type Objective, type ObjectiveId, type RoadmapWeek, type SourceLocator } from "../content/curriculum.ts"
+
+type CurriculumSource = (typeof curriculum.sources)[number]
 
 export interface RoadmapWeekDetail {
   week: RoadmapWeek
   objectives: readonly Objective[]
   labs: readonly Lab[]
   browserActivities: readonly BrowserActivity[]
+  sources: readonly RoadmapSourceReference[]
+}
+
+export interface RoadmapSourceReference {
+  locator: SourceLocator
+  source: CurriculumSource
 }
 
 export function getRoadmapHref(weekNumber: number): string {
@@ -28,22 +36,13 @@ export function getRoadmapWeek(weekParam: string | number): RoadmapWeekDetail | 
   ])
   const objectives = curriculum.objectives.filter((objective) => objectiveIds.has(objective.id))
 
-  return { week, objectives, labs, browserActivities }
+  const sources = week.sourceLocators
+    .map((locator) => ({ locator, source: curriculum.sources.find((source) => source.id === locator.sourceId) }))
+    .filter((reference): reference is RoadmapSourceReference => Boolean(reference.source))
+
+  return { week, objectives, labs, browserActivities, sources }
 }
 
 export function getRoadmapWeekObjectiveIds(week: RoadmapWeek): readonly ObjectiveId[] {
-  const activityIds = new Set(week.activityIds)
-  const objectiveIds = new Set<ObjectiveId>()
-
-  for (const lab of curriculum.labs) {
-    if (!activityIds.has(lab.id)) continue
-    for (const objectiveId of lab.objectiveIds) objectiveIds.add(objectiveId)
-  }
-
-  for (const activity of curriculum.browserActivities) {
-    if (!activityIds.has(activity.id)) continue
-    for (const objectiveId of activity.objectiveIds) objectiveIds.add(objectiveId)
-  }
-
-  return curriculum.objectives.filter((objective) => objectiveIds.has(objective.id)).map((objective) => objective.id)
+  return getRoadmapWeek(week.week)?.objectives.map((objective) => objective.id) ?? []
 }
