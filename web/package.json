@@ -11,6 +11,7 @@
     "test:analytics": "node --experimental-strip-types --experimental-transform-types scripts/analytics.test.mjs",
     "test:quizzes": "node --experimental-strip-types --experimental-transform-types scripts/quizzes.test.mjs",
     "test:migration": "node --test scripts/migration.test.mjs",
+    "test:navigation": "node --test scripts/navigation.test.mjs",
     "test:auth": "node --experimental-strip-types --experimental-transform-types scripts/auth.test.mjs"
   },
   "dependencies": {

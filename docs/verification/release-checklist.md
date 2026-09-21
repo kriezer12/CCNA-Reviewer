@@ -6,7 +6,7 @@ This checklist records the release evidence for the private CCNA Reviewer previe
 
 - The production build, TypeScript check, lint, curriculum registry checks, analytics checks, quiz checks, auth checks, and migration checks pass from `web/`.
 - The dashboard login surface contains email/password and Google only. Apple OAuth and public signup copy are removed.
-- An unauthenticated request to `/` redirects to `/login?error=auth-required`.
+- Unauthenticated requests to `/`, `/roadmap`, `/labs`, `/command-drills`, and `/readiness` redirect to `/login?error=auth-required`.
 - User activity is read from Supabase; no progress or analytics value uses localStorage.
 - Curriculum platform boundaries and simulator limitations are recorded in `web/src/content/curriculum.ts` and `docs/curriculum/lab-courses.md`.
 
@@ -22,6 +22,7 @@ This checklist records the release evidence for the private CCNA Reviewer previe
 
 - The GitHub-connected `ccna-reviewer` project builds from the `web/` root directory.
 - The PR #10 branch preview is Ready at the stable branch alias: https://ccna-reviewer-git-feat-2-canonical-c-6097b3-kriezer12s-projects.vercel.app (latest verified commit `44ad94b`).
+- The issue #11 route-split preview is Ready at https://ccna-reviewer-git-feat-11-study-routes-kriezer12s-projects.vercel.app (PR #12) and includes protected `/roadmap`, `/labs`, `/command-drills`, and `/readiness` routes.
 - Vercel Deployment Protection currently places an account gate in front of the preview; owner browser verification must be performed while signed into the Vercel project or after the protection setting is adjusted.
 - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are configured for Preview and Production. The publishable key is public by design.
 - The preview and production callback URLs are listed in Supabase Auth configuration.

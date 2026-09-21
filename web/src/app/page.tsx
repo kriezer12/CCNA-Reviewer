@@ -1,279 +1,109 @@
-import {
-  ArrowUpRight,
-  BookOpen,
-  Check,
-  ChevronRight,
-  Clock3,
-  Command,
-  FlaskConical,
-  LayoutDashboard,
-  PanelLeft,
-  RadioTower,
-  Route,
-  ShieldCheck,
-  Terminal,
-  Wifi,
-} from "lucide-react"
+import Link from "next/link"
+import { ArrowUpRight, BookOpen, Clock3, FlaskConical, Route, ShieldCheck, Terminal } from "lucide-react"
 
+import { DashboardShell } from "@/components/dashboard/dashboard-shell"
+import { DashboardDataError } from "@/components/dashboard/dashboard-data-error"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { buttonVariants } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { Separator } from "@/components/ui/separator"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { LogoutButton } from "@/components/logout-button"
-import { LabProgressControl } from "@/components/dashboard/lab-progress-control"
-import { ObjectiveProgressControl } from "@/components/dashboard/objective-progress-control"
-import { QuizRunner } from "@/components/dashboard/quiz-runner"
-import { StudySessionForm } from "@/components/dashboard/study-session-form"
-import { RetryButton } from "@/components/dashboard/retry-button"
 import { curriculum } from "@/content/curriculum"
-import { calculateCompletion, calculateQuizScore, calculateQuizTrend, calculateStudyStreak, todayInTimeZone } from "@/lib/analytics"
+import { calculateQuizScore, loadDashboardModel } from "@/lib/dashboard-model"
 import { requireOwner } from "@/lib/supabase/auth"
-import { loadDashboardData, type DashboardData } from "@/lib/supabase/progress"
-
-function Stat({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="font-mono text-2xl font-semibold tracking-tight text-foreground">{value}</span>
-      <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-muted-foreground">{label}</span>
-    </div>
-  )
-}
+import { cn } from "cn"
 
 export const dynamic = "force-dynamic"
 
 export default async function Home() {
   const user = await requireOwner()
-  let dashboardData: DashboardData = { topics: [], labs: [], sessions: [], attempts: [] }
-  let dataError: string | null = null
-
-  try {
-    dashboardData = await loadDashboardData(user.id)
-  } catch (error) {
-    dataError = error instanceof Error ? error.message : "Unable to load study progress."
-  }
-
-  const objectiveCompletion = dataError ? null : calculateCompletion(dashboardData.topics, curriculum.objectives.length)
-  const labCompletion = dataError ? null : calculateCompletion(dashboardData.labs, curriculum.labs.length)
-  const studyMinutes = dataError ? null : dashboardData.sessions.reduce((total, session) => total + session.duration_minutes, 0)
-  const streak = dataError ? null : calculateStudyStreak(dashboardData.sessions, todayInTimeZone(process.env.STUDY_TIME_ZONE ?? "Asia/Manila"))
-  const latestAttempt = dataError ? undefined : dashboardData.attempts[0]
-  const quizTrend = dataError ? [] : calculateQuizTrend(dashboardData.attempts)
-  const completedObjectiveIds = new Set(dashboardData.topics.filter((row) => row.status === "complete").map((row) => row.objective_id))
-  const roadmap = curriculum.roadmap.weeks.map((week, index) => {
-    const activityIds = new Set(week.activityIds)
-    const objectiveIds = new Set([
-      ...curriculum.labs.filter((lab) => activityIds.has(lab.id)).flatMap((lab) => lab.objectiveIds),
-      ...curriculum.browserActivities.filter((activity) => activityIds.has(activity.id)).flatMap((activity) => activity.objectiveIds),
-    ])
-    const completed = [...objectiveIds].filter((objectiveId) => completedObjectiveIds.has(objectiveId)).length
-    const progress = dataError ? null : objectiveIds.size === 0 ? 0 : Math.round((completed / objectiveIds.size) * 100)
-    return {
-      label: `Week ${String(week.week).padStart(2, "0")}`,
-      meta: week.dates,
-      focus: week.focus,
-      progress,
-      icon: [LayoutDashboard, PanelLeft, Route, ShieldCheck, Wifi][Math.min(Math.floor(index / 4), 4)],
-    }
-  })
-  const completedWeeks = dataError ? null : roadmap.filter((week) => week.progress === 100).length
-  const labProgressById = new Map(dashboardData.labs.map((row) => [row.lab_id, row]))
-  const labs = curriculum.labs.slice(5, 8).map((lab, index) => {
-    const row = labProgressById.get(lab.id)
-    return {
-      id: lab.id,
-      name: lab.title,
-      type: lab.platform.primary,
-      time: `${lab.durationMinutes} min`,
-      state: dataError ? "Unavailable" : row?.status === "complete" ? "Complete" : row?.status === "in_progress" ? "In progress" : index === 0 ? "Next" : "Queued",
-      evidence: dataError ? "not loaded" : row?.evidence_mode?.replace("_", " ") ?? "not recorded",
-    }
-  })
-  const objectiveById = new Map<string, string>(curriculum.objectives.map((objective) => [objective.id, objective.title]))
-  const labById = new Map<string, string>(curriculum.labs.map((lab) => [lab.id, lab.title]))
-  const recentActivity = [
-    ...dashboardData.topics.map((row) => ({ label: `${row.objective_id} · ${objectiveById.get(row.objective_id) ?? "Objective"}`, detail: `Lesson ${row.status.replace("_", " ")}`, date: row.updated_at })),
-    ...dashboardData.labs.map((row) => ({ label: `${row.lab_id} · ${labById.get(row.lab_id) ?? "Lab"}`, detail: `Lab ${row.status.replace("_", " ")} · ${row.evidence_mode.replace("_", " ")}`, date: row.updated_at })),
-    ...dashboardData.sessions.map((row) => ({ label: `${row.duration_minutes} minutes recorded`, detail: row.notes ?? "Study session", date: row.created_at })),
-    ...dashboardData.attempts.map((row) => ({ label: `${row.score}/${row.total_questions} quiz attempt`, detail: `${row.quiz_id} · ${(row.objective_ids.length ? row.objective_ids : [row.topic_id]).join(", ")}`, date: row.attempted_at })),
-  ].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 6)
+  const model = await loadDashboardModel(user.id)
+  const {
+    dataError,
+    objectiveCompletion,
+    labCompletion,
+    studyMinutes,
+    streak,
+    latestAttempt,
+    recentActivity,
+  } = model
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto flex min-h-screen max-w-[1440px] flex-col lg:flex-row">
-        <aside className="hidden w-64 shrink-0 border-r border-border bg-card lg:flex lg:flex-col">
-          <div className="flex h-20 items-center gap-3 px-6">
-            <div className="flex size-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <Command className="size-4" />
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <span className="font-mono text-xs font-semibold tracking-[0.14em]">CCNA / REVIEWER</span>
-              <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">v1.1 study system</span>
-            </div>
+    <DashboardShell active="dashboard" userEmail={user.email}>
+      <section className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-end">
+        <div className="flex max-w-3xl flex-col gap-5">
+          <Badge className="w-fit font-mono text-[10px] uppercase tracking-[0.16em]" variant="secondary">Study context</Badge>
+          <h1 className="max-w-2xl text-4xl font-semibold leading-[1.08] tracking-[-0.045em] sm:text-5xl lg:text-6xl">
+            Build the route. <span className="text-muted-foreground">Understand the path.</span>
+          </h1>
+          <p className="max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
+            Your short view of progress, recent evidence, and the next study action after work.
+          </p>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Link className={buttonVariants({ size: "lg" })} href="/roadmap">
+              <BookOpen data-icon="inline-start" /> Continue roadmap <ArrowUpRight data-icon="inline-end" />
+            </Link>
+            <Link className={buttonVariants({ size: "lg", variant: "outline" })} href="/labs">
+              <FlaskConical data-icon="inline-start" /> Open labs
+            </Link>
           </div>
-          <Separator />
-          <nav className="flex flex-1 flex-col gap-1 p-4" aria-label="Main navigation">
-            <Button className="justify-start gap-3" variant="secondary"><LayoutDashboard data-icon="inline-start" /> Dashboard</Button>
-            <Button className="justify-start gap-3 text-muted-foreground" variant="ghost"><BookOpen data-icon="inline-start" /> Roadmap</Button>
-            <Button className="justify-start gap-3 text-muted-foreground" variant="ghost"><FlaskConical data-icon="inline-start" /> Labs</Button>
-            <Button className="justify-start gap-3 text-muted-foreground" variant="ghost"><Terminal data-icon="inline-start" /> Command drills</Button>
-            <Button className="justify-start gap-3 text-muted-foreground" variant="ghost"><ShieldCheck data-icon="inline-start" /> Readiness</Button>
-          </nav>
-          <div className="halftone m-4 flex flex-col gap-3 rounded-lg border border-border p-4">
-            <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-muted-foreground">Exam target</span>
-            <span className="font-mono text-lg font-semibold">JAN 25–31, 2027</span>
-            <span className="text-xs leading-5 text-muted-foreground">18 weeks of focused practice before the v1.1 window closes.</span>
-          </div>
-        </aside>
+        </div>
+        <Card className="halftone border-border bg-muted/40">
+          <CardHeader>
+            <CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Exam coverage</CardDescription>
+            <CardTitle className="font-mono text-3xl tracking-tight">{objectiveCompletion ? `${objectiveCompletion.completed} / ${objectiveCompletion.total}` : "Unavailable"}</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            {objectiveCompletion ? <><Progress value={objectiveCompletion.percentage} aria-label="Exam objective coverage" /><div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground"><span>Lesson understanding</span><span>{objectiveCompletion.percentage}%</span></div></> : <p className="text-sm text-muted-foreground">Retry to load saved objective progress.</p>}
+          </CardContent>
+        </Card>
+      </section>
 
-        <section className="flex min-w-0 flex-1 flex-col">
-          <header className="flex min-h-20 items-center justify-between border-b border-border px-4 py-4 sm:px-8 lg:px-10">
-            <div className="flex items-center gap-3">
-              <div className="flex size-9 items-center justify-center rounded-md bg-primary text-primary-foreground lg:hidden"><Command className="size-4" /></div>
-              <div className="flex flex-col gap-0.5">
-                <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Monday / Week 04</span>
-                <span className="text-sm font-medium">Good evening, {user.email?.split("@")[0] ?? "learner"}.</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge className="hidden font-mono text-[10px] uppercase tracking-[0.12em] sm:inline-flex" variant="outline">{streak === null ? "Progress unavailable" : streak ? `${streak} day streak` : "No streak yet"}</Badge>
-              <LogoutButton />
-            </div>
-          </header>
+      <section className="grid gap-3 border-y border-border py-5 sm:grid-cols-3 sm:gap-0" aria-label="Progress analytics">
+        <Stat value={objectiveCompletion ? String(objectiveCompletion.completed).padStart(2, "0") : "—"} label="Objectives complete" />
+        <Stat value={studyMinutes === null ? "—" : `${Math.floor(studyMinutes / 60)}:${String(studyMinutes % 60).padStart(2, "0")}`} label="Recorded study time" />
+        <Stat value={streak === null ? "—" : String(streak).padStart(2, "0")} label="30-minute streak" />
+      </section>
 
-          <div className="flex flex-1 flex-col gap-8 px-4 py-8 sm:px-8 lg:gap-10 lg:px-10 lg:py-12">
-            <section className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-end">
-              <div className="flex max-w-3xl flex-col gap-5">
-                <Badge className="w-fit font-mono text-[10px] uppercase tracking-[0.16em]" variant="secondary">Your next hour</Badge>
-                <h1 className="max-w-2xl text-4xl font-semibold leading-[1.08] tracking-[-0.045em] sm:text-5xl lg:text-6xl">
-                  Build the route. <span className="text-muted-foreground">Understand the path.</span>
-                </h1>
-                <p className="max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
-                  A focused CCNA study loop for the hours after work: retrieve, configure, verify, and record what changed.
-                </p>
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <Button className="w-full sm:w-auto" size="lg"><BookOpen data-icon="inline-start" /> Continue session <ArrowUpRight data-icon="inline-end" /></Button>
-                  <Button className="w-full sm:w-auto" size="lg" variant="outline">View full roadmap</Button>
-                </div>
-              </div>
-              <Card className="halftone border-border bg-muted/40">
-                <CardHeader>
-                  <CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Exam coverage</CardDescription>
-                  <CardTitle className="font-mono text-3xl tracking-tight">{objectiveCompletion ? `${objectiveCompletion.completed} / ${objectiveCompletion.total}` : "Unavailable"}</CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-3">
-                  {objectiveCompletion ? <><Progress value={objectiveCompletion.percentage} aria-label="Exam objective coverage" /><div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground"><span>Lesson understanding</span><span>{objectiveCompletion.percentage}%</span></div></> : <p className="text-sm text-muted-foreground">Retry to load saved objective progress.</p>}
-                </CardContent>
-              </Card>
-            </section>
+      {dataError ? <DashboardDataError /> : null}
 
-            <section className="grid gap-3 border-y border-border py-5 sm:grid-cols-3 sm:gap-0">
-              <Stat value={objectiveCompletion ? String(objectiveCompletion.completed).padStart(2, "0") : "—"} label="Objectives complete" />
-              <Stat value={studyMinutes === null ? "—" : `${Math.floor(studyMinutes / 60)}:${String(studyMinutes % 60).padStart(2, "0")}`} label="Recorded study time" />
-              <Stat value={streak === null ? "—" : String(streak).padStart(2, "0")} label="30-minute streak" />
-            </section>
+      <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
+        <Card>
+          <CardHeader>
+            <CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Saved activity</CardDescription>
+            <CardTitle>Recent evidence</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            {recentActivity.length ? recentActivity.map((activity, index) => <div className="flex items-start justify-between gap-4 border-b border-border pb-3 last:border-0 last:pb-0" key={`${activity.date}-${index}`}><div className="flex min-w-0 flex-col gap-1"><span className="truncate text-sm font-medium">{activity.label}</span><span className="truncate text-xs text-muted-foreground">{activity.detail}</span></div><span className="shrink-0 font-mono text-[10px] text-muted-foreground">{activity.date.slice(0, 10)}</span></div>) : <p className="text-sm leading-6 text-muted-foreground">{dataError ? "Saved activity is unavailable. Retry to load it." : "No saved activity yet. Record a lesson, lab, session, or quiz to see it here."}</p>}
+          </CardContent>
+        </Card>
 
-            {dataError ? <Card className="border-destructive/50 bg-destructive/5"><CardContent className="flex items-center justify-between gap-4 pt-6"><p className="text-sm text-destructive" role="alert">{dataError}</p><RetryButton /></CardContent></Card> : null}
+        <Card className="bg-primary text-primary-foreground">
+          <CardHeader>
+            <div className="flex items-center justify-between"><Badge className="border-primary-foreground/20 bg-primary-foreground/10 font-mono text-[10px] uppercase tracking-[0.15em] text-primary-foreground" variant="outline">Next signal</Badge><Clock3 className="size-4 text-primary-foreground/70" /></div>
+            <CardTitle className="mt-4 text-2xl">{latestAttempt ? `${calculateQuizScore(latestAttempt.score, latestAttempt.total_questions)}% latest quiz` : "Start your first checkpoint"}</CardTitle>
+            <CardDescription className="text-primary-foreground/70">Use the readiness view to find weak objectives and choose a focused next step.</CardDescription>
+          </CardHeader>
+          <CardContent><Link className={buttonVariants({ className: "w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90", size: "lg" })} href="/readiness"><ShieldCheck data-icon="inline-start" /> Review readiness <ArrowUpRight data-icon="inline-end" /></Link></CardContent>
+        </Card>
+      </section>
 
-            <Card><CardHeader><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Saved activity</CardDescription><CardTitle>Recent activity</CardTitle></CardHeader><CardContent className="flex flex-col gap-3">{recentActivity.length ? recentActivity.map((activity, index) => <div className="flex items-start justify-between gap-4 border-b border-border pb-3 last:border-0 last:pb-0" key={`${activity.date}-${index}`}><div className="flex min-w-0 flex-col gap-1"><span className="truncate text-sm font-medium">{activity.label}</span><span className="truncate text-xs text-muted-foreground">{activity.detail}</span></div><span className="shrink-0 font-mono text-[10px] text-muted-foreground">{activity.date.slice(0, 10)}</span></div>) : <p className="text-sm leading-6 text-muted-foreground">{dataError ? "Saved activity is unavailable. Retry to load it." : "No saved activity yet. Record a lesson, lab, session, or quiz to see it here."}</p>}</CardContent></Card>
-
-            <Tabs className="flex flex-col gap-6" defaultValue="roadmap">
-              <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                <div className="flex flex-col gap-1">
-                  <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-muted-foreground">Workspace</span>
-                  <h2 className="text-2xl font-semibold tracking-tight">Study control</h2>
-                </div>
-                <TabsList><TabsTrigger value="roadmap">Roadmap</TabsTrigger><TabsTrigger value="labs">Labs</TabsTrigger><TabsTrigger value="blueprint">Blueprint</TabsTrigger></TabsList>
-              </div>
-
-              <TabsContent className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]" value="roadmap">
-                <Card>
-                  <CardHeader className="border-b border-border">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex flex-col gap-1"><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Path to exam day</CardDescription><CardTitle>18-week roadmap</CardTitle></div>
-                      <Badge variant="outline">{completedWeeks === null ? "Unavailable" : `${completedWeeks} / ${curriculum.roadmap.weeks.length} weeks`}</Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="flex flex-col gap-0 p-0">
-                    {roadmap.map((item) => {
-                      const Icon = item.icon
-                      return (
-                        <div className="flex items-center gap-4 border-b border-border px-5 py-4 last:border-b-0 sm:px-6" key={item.label}>
-                          <div className="flex size-9 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground">{item.progress === 100 ? <Check className="size-4 text-foreground" /> : <Icon className="size-4" />}</div>
-                          <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                            <div className="flex items-center justify-between gap-3"><span className="truncate text-sm font-medium">{item.label} · {item.focus}</span><span className="font-mono text-[10px] text-muted-foreground">{item.progress === null ? "Unavailable" : `${item.progress}%`}</span></div>
-                            {item.progress === null ? <span className="text-xs text-muted-foreground">Saved progress unavailable. Retry to reload this roadmap.</span> : <Progress className="h-1" value={item.progress} aria-label={item.label + " progress"} />}
-                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{item.meta}</span>
-                          </div>
-                          <ChevronRight className="hidden size-4 text-muted-foreground sm:block" />
-                        </div>
-                      )
-                    })}
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-primary text-primary-foreground">
-                  <CardHeader>
-                    <div className="flex items-center justify-between"><Badge className="border-primary-foreground/20 bg-primary-foreground/10 font-mono text-[10px] uppercase tracking-[0.15em] text-primary-foreground" variant="outline">In focus</Badge><Clock3 className="size-4 text-primary-foreground/70" /></div>
-                    <CardTitle className="mt-4 text-2xl">Rapid PVST+ roles</CardTitle>
-                    <CardDescription className="text-primary-foreground/70">Interpret root ports, port states, and guard features before the uplink lab.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex flex-col gap-5">
-                    <div className="flex items-center gap-3 font-mono text-xs text-primary-foreground/80"><span className="rounded border border-primary-foreground/20 px-2 py-1">2.5</span><span>Network Access</span></div>
-                    <div className="flex items-center gap-2 text-sm text-primary-foreground/80"><RadioTower className="size-4" /> 20 minutes · concept check</div>
-                  </CardContent>
-                  <CardFooter><Button className="w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90" size="lg">Start focused review <ArrowUpRight data-icon="inline-end" /></Button></CardFooter>
-                </Card>
-                <ObjectiveProgressControl objectives={curriculum.objectives} initialRows={dashboardData.topics} />
-              </TabsContent>
-
-              <TabsContent className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]" value="labs">
-                <Card>
-                  <CardHeader className="border-b border-border"><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Practical sequence</CardDescription><div className="flex items-center justify-between gap-3"><CardTitle>Lab queue</CardTitle><Badge variant="outline">{labCompletion ? `${labCompletion.completed} / ${labCompletion.total}` : "Unavailable"}</Badge></div></CardHeader>
-                  <CardContent className="flex flex-col gap-0 p-0">
-                    {labs.map((lab) => (
-                      <div className="flex flex-col gap-3 border-b border-border px-5 py-5 last:border-b-0 sm:flex-row sm:items-center sm:px-6" key={lab.id}>
-                        <span className="font-mono text-xs text-muted-foreground">{lab.id}</span>
-                        <div className="flex min-w-0 flex-1 flex-col gap-1"><span className="font-medium">{lab.name}</span><span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{lab.type} · {lab.time} · evidence: {lab.evidence}</span></div>
-                        <Badge variant={lab.state === "Next" ? "default" : lab.state === "Complete" ? "outline" : "secondary"}>{lab.state}</Badge>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-                <Card className="halftone">
-                  <CardHeader><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Lab rule</CardDescription><CardTitle>Evidence over memory</CardTitle></CardHeader>
-                  <CardContent className="flex flex-col gap-3 text-sm leading-6 text-muted-foreground"><p>Save the topology, show output, and the desired/forbidden connectivity checks.</p><Separator /><p>Phone time prepares the lab. Desktop time configures it.</p></CardContent>
-                </Card>
-                <LabProgressControl labs={curriculum.labs} initialRows={dashboardData.labs} />
-                <StudySessionForm objectives={curriculum.objectives} labs={curriculum.labs} />
-              </TabsContent>
-
-              <TabsContent className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]" value="blueprint">
-                <Card>
-                  <CardHeader className="border-b border-border"><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">200-301 v1.1</CardDescription><CardTitle>Objective weight</CardTitle></CardHeader>
-                  <CardContent className="grid gap-5 p-5 sm:grid-cols-2 sm:p-6">
-                    {curriculum.domains.map((domain) => <div className="flex items-center justify-between border-b border-border pb-3" key={domain.id}><span className="text-sm">{domain.title}</span><span className="font-mono text-sm font-semibold">{domain.weight}%</span></div>)}
-                  </CardContent>
-                </Card>
-                <Card className="bg-muted/40">
-                  <CardHeader><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Readiness signal</CardDescription><CardTitle>Keep the weak spots visible.</CardTitle></CardHeader>
-                  <CardContent className="flex flex-col gap-3 text-sm leading-6 text-muted-foreground"><p>Two fresh mixed assessments, no weak domain below the internal threshold, and independent configuration evidence.</p></CardContent>
-                </Card>
-                <QuizRunner />
-                <Card className="bg-muted/40"><CardHeader><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Quiz history</CardDescription><CardTitle>{dataError ? "Unavailable" : latestAttempt ? `${calculateQuizScore(latestAttempt.score, latestAttempt.total_questions)}% latest` : "No attempts yet"}</CardTitle></CardHeader><CardContent className="flex flex-col gap-4">{dataError ? <p className="text-sm leading-6 text-muted-foreground">Saved quiz history is unavailable. Retry to reload it.</p> : dashboardData.attempts.length ? <><div aria-label="Quiz score trend" className="flex h-20 items-end gap-2 border-b border-border pb-3">{quizTrend.map((score, index) => <div className="flex min-w-0 flex-1 flex-col items-center gap-1" key={`${score}-${index}`}><div className="w-full rounded-sm bg-primary/80" style={{ height: `${Math.max(score, 8)}%` }} /><span className="font-mono text-[9px] text-muted-foreground">{score}%</span></div>)}</div>{dashboardData.attempts.slice(0, 5).map((attempt) => <div className="flex items-center justify-between gap-3 border-b border-border pb-2 last:border-0 last:pb-0" key={attempt.id}><span className="truncate text-sm">{(attempt.objective_ids.length ? attempt.objective_ids : [attempt.topic_id]).join(", ")} tagged checkpoint</span><span className="font-mono text-xs">{calculateQuizScore(attempt.score, attempt.total_questions)}%</span></div>)}</> : <p className="text-sm leading-6 text-muted-foreground">Complete a checkpoint to start your quiz trend.</p>}</CardContent></Card>
-              </TabsContent>
-            </Tabs>
-          </div>
-        </section>
-      </div>
-    </main>
+      <section aria-labelledby="study-areas-heading" className="flex flex-col gap-4">
+        <div className="flex flex-col gap-1"><span className="font-mono text-[10px] uppercase tracking-[0.15em] text-muted-foreground">Study areas</span><h2 className="text-2xl font-semibold tracking-tight" id="study-areas-heading">Choose where to work next.</h2></div>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <AreaLink href="/roadmap" icon={Route} title="Roadmap" detail={`${curriculum.roadmap.weeks.length} weeks mapped to exam day.`} />
+          <AreaLink href="/labs" icon={FlaskConical} title="Labs" detail={`${labCompletion ? labCompletion.total : curriculum.labs.length} practical activities with evidence.`} />
+          <AreaLink href="/command-drills" icon={Terminal} title="Command drills" detail="Short IOS retrieval prompts before configuration work." />
+          <AreaLink href="/readiness" icon={ShieldCheck} title="Readiness" detail="Quiz signal, weak spots, time, and streak in one view." />
+        </div>
+      </section>
+    </DashboardShell>
   )
+}
+
+function Stat({ value, label }: { value: string; label: string }) {
+  return <div className="flex flex-col gap-1"><span className="font-mono text-2xl font-semibold tracking-tight text-foreground">{value}</span><span className="font-mono text-[10px] uppercase tracking-[0.15em] text-muted-foreground">{label}</span></div>
+}
+
+function AreaLink({ href, icon: Icon, title, detail }: { href: string; icon: typeof Route; title: string; detail: string }) {
+  return <Link className={cn("group flex min-h-32 flex-col justify-between rounded-lg border border-border bg-card p-5 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50")} href={href}><div className="flex items-start justify-between gap-3"><Icon className="size-5 text-muted-foreground transition-colors group-hover:text-foreground" /><ArrowUpRight className="size-4 text-muted-foreground" /></div><div className="flex flex-col gap-1"><span className="font-medium">{title}</span><span className="text-sm leading-5 text-muted-foreground">{detail}</span></div></Link>
 }
