@@ -2,6 +2,43 @@ import { expect, test, type APIRequestContext } from "@playwright/test"
 
 const authService = "http://127.0.0.1:54321"
 
+test("lab queue and roadmap open a specific source-grounded workspace", async ({ page, request }) => {
+  await page.goto("/labs")
+  await expect(page.getByRole("link", { name: /L06 Bundle the uplinks/ })).toBeVisible()
+  await page.getByRole("link", { name: /L06 Bundle the uplinks/ }).click()
+  await expect(page).toHaveURL(/\/labs\/L06$/)
+  await expect(page.getByRole("heading", { name: "L06: Bundle the uplinks" })).toBeVisible()
+  await expect(page.getByText("Layer 2 evidence alone does not complete L06.")).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Verification" })).toBeVisible()
+  await page.getByRole("link", { name: "Week 04" }).click()
+  await page.getByRole("link", { name: "Open lab workspace" }).first().click()
+  await expect(page).toHaveURL(/\/labs\/L05$/)
+  await request.delete(`${authService}/__test/requests`)
+  await page.goto("/labs/invalid")
+  await expect(page.getByText(/not found|404/i).first()).toBeVisible()
+  const writes = (await (await request.get(`${authService}/__test/requests`)).json()).filter((entry: { method: string }) => entry.method !== "GET")
+  expect(writes).toEqual([])
+})
+
+test("lab evidence requires a note, saves only this lab, and guards edits", async ({ page, request }) => {
+  await page.goto("/labs/L01")
+  await page.getByLabel("Lab status").selectOption("complete")
+  await page.getByRole("button", { name: "Save lab evidence" }).click()
+  await expect(page.getByRole("alert")).toContainText("Add an evidence note")
+  await page.getByLabel(/Evidence note/).fill("Switch and two clients; saved configuration, interface and MAC output, reload check observed.")
+  await request.delete(`${authService}/__test/requests`)
+  await page.getByRole("button", { name: "Save lab evidence" }).click()
+  await expect(page.getByRole("status")).toContainText("Saved")
+  const requests = await (await request.get(`${authService}/__test/requests`)).json() as { method: string; table?: string }[]
+  expect(requests.filter((entry) => entry.method === "POST" && entry.table === "lab_progress")).toHaveLength(1)
+  expect(requests.filter((entry) => entry.table === "topic_progress" || entry.table === "study_sessions" || entry.table === "quiz_attempts")).toHaveLength(0)
+  await page.getByLabel(/Evidence note/).fill("unsaved change")
+  page.once("dialog", (dialog) => dialog.dismiss())
+  await page.getByRole("link", { name: "Labs", exact: true }).first().click()
+  await expect(page).toHaveURL(/\/labs\/L01$/)
+  await expect(page.getByLabel(/Evidence note/)).toHaveValue("unsaved change")
+})
+
 test("desktop navigation stays mounted and loads only route data", async ({ page, request }) => {
   await page.goto("/")
   await expect(page.getByRole("heading", { name: /Build the route\./ })).toBeVisible()

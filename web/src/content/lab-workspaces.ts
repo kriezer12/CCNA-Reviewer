@@ -1,0 +1,46 @@
+import type { LabId } from "./curriculum"
+
+// Presentation descriptions from docs/curriculum/lab-courses.md. These are briefs, not tested builds.
+export const labTopology: Record<LabId, string> = {
+  L01: "One switch connected to two clients.",
+  L02: "Two small LANs connected by a router, with client settings to inspect.",
+  L03: "Two switches, department clients, and a phone-capable model where supported.",
+  L04: "The L03 switches joined by an 802.1Q trunk carrying selected VLANs.",
+  L05: "Three switches connected in a redundant triangle.",
+  L06: "Two switches with two parallel links; separate Layer 2 and Layer 3 stages.",
+  L07: "Three devices with incomplete link labels to discover through CDP and LLDP.",
+  L08: "Two VLANs routed through subinterfaces, with an SVI design to compare.",
+  L09: "Three routers, attached LANs, and an alternate route.",
+  L10: "Three routers in a chain, with attached LANs.",
+  L11: "Three routers sharing Ethernet and a separate point-to-point link.",
+  L12: "A router, switch, and two clients using global and link-local IPv6 addresses.",
+  L13: "The routed branch extended with IPv6 routes alongside IPv4.",
+  L14: "A client VLAN, relay router, and remote DHCP/DNS server; a separate router DHCP-client stage.",
+  L15: "Inside clients and server, an edge router, and an outside host.",
+  L16: "Three network devices and a services host for NTP and operational evidence.",
+  L17: "An admin client, switch or router, and ordinary client for management access tests.",
+  L18: "Two source LANs and one protected destination LAN.",
+  L19: "The L18 network extended with DNS, web, and management services.",
+  L20: "An access LAN with separate port-security and legitimate/rogue DHCP stages.",
+  L21: "A controller, access point, switch, and client represented in diagrams or a verified lab.",
+  L22: "Two switches, router or edge, services host, and department clients.",
+  L23: "A fresh branch variant with three independent faults.",
+  L24: "A changed topology and addressing plan selected from weak practical objectives.",
+}
+
+export const labExtraRequirements: Partial<Record<LabId, readonly string[]>> = {
+  L02: ["Interpret output from a real Windows, macOS, or Linux client; simulated PC output alone is insufficient for objective 1.10."],
+  L03: ["Record voice VLAN configuration evidence even if simulated calling is outside scope."],
+  L04: ["Record per-VLAN permitted and denied reachability and explain native VLAN mismatch effects."],
+  L05: ["Interpret PortFast, root guard, loop guard, BPDU filter, and BPDU guard through supported output or scenarios."],
+  L06: ["Stage A: demonstrate Layer 2 LACP in week 4.", "Stage B: demonstrate Layer 3 LACP after routing foundations in week 5 on a tested platform.", "Layer 2 evidence alone does not complete L06."],
+  L09: ["Explain longest-prefix forwarding separately from administrative distance and metric, and verify network, default, host, and floating routes."],
+  L13: ["Keep IPv4 and IPv6 test matrices separate; a successful IPv4 ping is not IPv6 evidence."],
+  L18: ["Record both permitted and denied flows, explain the implicit deny, and justify rule placement."],
+  L19: ["Record the source, destination, protocol, and port matrix, including required infrastructure and return traffic."],
+  L20: ["Treat DAI and DHCP snooping as conceptual until the exact device and version are tested."],
+  L21: ["Conceptual boundary: interpret controller, AP, switch, and client evidence, including WLAN settings and a wrong PSK or VLAN mapping.", "Runnable boundary: use a verified WLC/AP environment to configure and check WPA2-PSK association, IP addressing, and connectivity. Both requirements remain under L21."],
+  L22: ["Build both stages from requirements, preserve configurations, and record a full reachability and policy matrix."],
+  L23: ["For each of three faults, record symptom, hypothesis, evidence, fix, and regression check; a blanket reset is insufficient."],
+  L24: ["Include desired and forbidden flow checks where the selected practical objectives require them."],
+}
