@@ -4,7 +4,6 @@ import { notFound } from "next/navigation"
 
 import { DashboardDataError } from "@/components/dashboard/dashboard-data-error"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
-import { DashboardShell } from "@/components/dashboard/dashboard-shell"
 import { LabProgressControl } from "@/components/dashboard/lab-progress-control"
 import { ObjectiveProgressControl } from "@/components/dashboard/objective-progress-control"
 import { Badge } from "@/components/ui/badge"
@@ -24,7 +23,7 @@ export default async function RoadmapWeekPage({ params }: { params: Promise<{ we
   const detail = getRoadmapWeek(weekParam)
   if (!detail) notFound()
 
-  const model = await loadDashboardModel(user.id)
+  const model = await loadDashboardModel(user.id, { sessions: false, attempts: false })
   const objectiveIds = new Set<string>(detail.objectives.map((objective) => objective.id))
   const labIds = new Set<string>(detail.labs.map((lab) => lab.id))
   const objectiveRows = model.data.topics.filter((row) => objectiveIds.has(row.objective_id))
@@ -33,7 +32,7 @@ export default async function RoadmapWeekPage({ params }: { params: Promise<{ we
   const progress = model.dataError ? null : detail.objectives.length === 0 ? 0 : Math.round((completedObjectives / detail.objectives.length) * 100)
 
   return (
-    <DashboardShell active="roadmap" headerLabel={`Roadmap / week ${String(detail.week.week).padStart(2, "0")}`} userEmail={user.email}>
+    <>
       <Link className={cn(buttonVariants({ variant: "ghost" }), "-ml-3 w-fit")} href="/roadmap">
         <ArrowLeft data-icon="inline-start" /> Back to roadmap
       </Link>
@@ -121,7 +120,7 @@ export default async function RoadmapWeekPage({ params }: { params: Promise<{ we
         <CardHeader><div className="flex items-center gap-3"><ShieldCheck className="size-5" /><div><CardDescription className="text-primary-foreground/70">Study rhythm</CardDescription><CardTitle className="text-xl">Use the next 60 minutes deliberately.</CardTitle></div></div></CardHeader>
         <CardContent><p className="max-w-2xl text-sm leading-6 text-primary-foreground/80">Retrieve one concept, apply it to the mapped activity, then record what you can explain or verify. Keep the exit evidence as your handoff to the next week.</p></CardContent>
       </Card>
-    </DashboardShell>
+    </>
   )
 }
 

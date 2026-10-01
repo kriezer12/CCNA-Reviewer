@@ -16,6 +16,12 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Navigation performance checks
+
+Run `npm run verify:performance` to build with isolated local Supabase test services, test desktop and mobile navigation with Playwright, and generate Lighthouse reports for login, dashboard, roadmap, a roadmap week, labs, and readiness. Reports are written to `lighthouse-reports/`; the test user and database responses are isolated from the configured Supabase project.
+
+See [the navigation benchmark](../docs/performance-navigation.md) for the recorded before/after login results and current protected-route measurements.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

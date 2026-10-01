@@ -14,7 +14,7 @@ import {
   todayInTimeZone,
 } from "@/lib/analytics"
 import { curriculum } from "@/content/curriculum"
-import { loadDashboardData, type DashboardData } from "@/lib/supabase/progress"
+import { loadDashboardData, type DashboardData, type DashboardDataScope } from "@/lib/supabase/progress"
 import { getRoadmapHref, getRoadmapWeekObjectiveIds } from "@/lib/roadmap-model"
 
 export interface RoadmapRow {
@@ -58,28 +58,34 @@ export interface DashboardModel {
   recentActivity: RecentActivity[]
 }
 
-export async function loadDashboardModel(userId: string): Promise<DashboardModel> {
+export async function loadDashboardModel(userId: string, scope: DashboardDataScope = {}): Promise<DashboardModel> {
   let data: DashboardData = { topics: [], labs: [], sessions: [], attempts: [] }
   let dataError: string | null = null
+  const include = {
+    topics: scope.topics !== false,
+    labs: scope.labs !== false,
+    sessions: scope.sessions !== false,
+    attempts: scope.attempts !== false,
+  }
 
   try {
-    data = await loadDashboardData(userId)
+    data = await loadDashboardData(userId, scope)
   } catch (error) {
     console.error("[dashboard-data] failed to load saved study data", error)
     dataError = "Saved study data is unavailable. Retry to load the latest state."
   }
 
-  const objectiveCompletion = dataError ? null : calculateCompletion(data.topics, curriculum.objectives.length)
-  const labCompletion = dataError ? null : calculateCompletion(data.labs, curriculum.labs.length)
-  const studyMinutes = dataError ? null : data.sessions.reduce((total, session) => total + session.duration_minutes, 0)
-  const streak = dataError ? null : calculateStudyStreak(data.sessions, todayInTimeZone(process.env.STUDY_TIME_ZONE ?? "Asia/Manila"))
-  const latestAttempt = dataError ? undefined : data.attempts[0]
-  const quizTrend = dataError ? [] : calculateQuizTrend(data.attempts)
+  const objectiveCompletion = dataError || !include.topics ? null : calculateCompletion(data.topics, curriculum.objectives.length)
+  const labCompletion = dataError || !include.labs ? null : calculateCompletion(data.labs, curriculum.labs.length)
+  const studyMinutes = dataError || !include.sessions ? null : data.sessions.reduce((total, session) => total + session.duration_minutes, 0)
+  const streak = dataError || !include.sessions ? null : calculateStudyStreak(data.sessions, todayInTimeZone(process.env.STUDY_TIME_ZONE ?? "Asia/Manila"))
+  const latestAttempt = dataError || !include.attempts ? undefined : data.attempts[0]
+  const quizTrend = dataError || !include.attempts ? [] : calculateQuizTrend(data.attempts)
   const completedObjectiveIds = new Set(data.topics.filter((row) => row.status === "complete").map((row) => row.objective_id))
   const roadmap = curriculum.roadmap.weeks.map((week, index) => {
     const objectiveIds = getRoadmapWeekObjectiveIds(week)
     const completed = objectiveIds.filter((objectiveId) => completedObjectiveIds.has(objectiveId)).length
-    const progress = dataError ? null : objectiveIds.length === 0 ? 0 : Math.round((completed / objectiveIds.length) * 100)
+    const progress = dataError || !include.topics ? null : objectiveIds.length === 0 ? 0 : Math.round((completed / objectiveIds.length) * 100)
     return {
       week: week.week,
       label: `Week ${String(week.week).padStart(2, "0")}`,
@@ -91,9 +97,9 @@ export async function loadDashboardModel(userId: string): Promise<DashboardModel
       icon: [LayoutDashboard, PanelLeft, Route, ShieldCheck, Wifi][Math.min(Math.floor(index / 4), 4)],
     }
   })
-  const completedWeeks = dataError ? null : roadmap.filter((week) => week.progress === 100).length
+  const completedWeeks = dataError || !include.topics ? null : roadmap.filter((week) => week.progress === 100).length
   const labProgressById = new Map(data.labs.map((row) => [row.lab_id, row]))
-  const labs = curriculum.labs.slice(5, 8).map((lab, index) => {
+  const labs = include.labs ? curriculum.labs.slice(5, 8).map((lab, index) => {
     const row = labProgressById.get(lab.id)
     return {
       id: lab.id,
@@ -103,7 +109,7 @@ export async function loadDashboardModel(userId: string): Promise<DashboardModel
       state: dataError ? "Unavailable" : row?.status === "complete" ? "Complete" : row?.status === "in_progress" ? "In progress" : index === 0 ? "Next" : "Queued",
       evidence: dataError ? "not loaded" : row?.evidence_mode?.replace("_", " ") ?? "not recorded",
     }
-  })
+  }) : []
 
   const objectiveById = new Map<string, string>(curriculum.objectives.map((objective) => [objective.id, objective.title]))
   const labById = new Map<string, string>(curriculum.labs.map((lab) => [lab.id, lab.title]))

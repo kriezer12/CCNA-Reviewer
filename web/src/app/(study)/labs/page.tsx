@@ -2,7 +2,6 @@ import Link from "next/link"
 import { ArrowUpRight } from "lucide-react"
 
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
-import { DashboardShell } from "@/components/dashboard/dashboard-shell"
 import { DashboardDataError } from "@/components/dashboard/dashboard-data-error"
 import { LabProgressControl } from "@/components/dashboard/lab-progress-control"
 import { StudySessionForm } from "@/components/dashboard/study-session-form"
@@ -18,10 +17,10 @@ export const dynamic = "force-dynamic"
 
 export default async function LabsPage() {
   const user = await requireOwner()
-  const model = await loadDashboardModel(user.id)
+  const model = await loadDashboardModel(user.id, { topics: false, sessions: false, attempts: false })
 
   return (
-    <DashboardShell active="labs" headerLabel="Labs / evidence sequence" userEmail={user.email}>
+    <>
       <DashboardPageHeader
         description="Configure, verify, and record the evidence that makes a lab demonstration trustworthy."
         eyebrow="Practical sequence / Packet Tracer and external labs"
@@ -50,6 +49,6 @@ export default async function LabsPage() {
 
       <LabProgressControl labs={curriculum.labs} initialRows={model.data.labs} />
       <StudySessionForm objectives={curriculum.objectives} labs={curriculum.labs} />
-    </DashboardShell>
+    </>
   )
 }

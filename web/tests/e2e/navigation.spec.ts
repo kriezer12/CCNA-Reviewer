@@ -1,0 +1,146 @@
+import { expect, test, type APIRequestContext } from "@playwright/test"
+
+const authService = "http://127.0.0.1:54321"
+
+test("desktop navigation stays mounted and loads only route data", async ({ page, request }) => {
+  await page.goto("/")
+  await expect(page.getByRole("heading", { name: /Build the route\./ })).toBeVisible()
+  await expect(page.getByRole("region", { name: "Progress analytics" })).toBeVisible()
+  await expect(page.getByText("Recent study activity", { exact: true })).toBeVisible()
+  await expect(page.getByText("Choose where to work next.")).toHaveCount(0)
+
+  await request.delete(`${authService}/__test/requests`)
+  await request.post(`${authService}/__test/config`, { data: { delayMs: 350 } })
+
+  const nav = page.getByRole("navigation", { name: "Main navigation" }).first()
+  await nav.evaluate((element) => element.setAttribute("data-persistent-navigation", "mounted"))
+  const startedAt = Date.now()
+  await nav.getByRole("link", { name: "Roadmap" }).click()
+  await expect(page.getByTestId("route-loading")).toBeVisible({ timeout: 1_000 })
+  const shellReadyMs = Date.now() - startedAt
+  await expect(page.getByRole("heading", { name: "A route you can actually finish." })).toBeVisible({ timeout: 5_000 })
+  const contentReadyMs = Date.now() - startedAt
+  expect(contentReadyMs).toBeLessThan(5_000)
+  console.log(`Navigation with 350ms database delay: shell ${shellReadyMs}ms, content ${contentReadyMs}ms`)
+  await expect(nav.getByRole("link", { name: "Roadmap" })).toHaveAttribute("aria-current", "page")
+  await expect(nav).toHaveAttribute("data-persistent-navigation", "mounted")
+
+  let tables = await readTables(request)
+  expect(tables).toContain("topic_progress")
+  expect(tables).not.toContain("lab_progress")
+  expect(tables).not.toContain("study_sessions")
+  expect(tables).not.toContain("quiz_attempts")
+
+  await request.delete(`${authService}/__test/requests`)
+  await page.getByRole("link", { name: "Open Week 01 detail" }).click()
+  await expect(page.getByRole("heading", { name: "Make this week visible in your work." })).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Objectives for this week." })).toBeVisible()
+  tables = await readTables(request)
+  expect(tables).toContain("topic_progress")
+  expect(tables).toContain("lab_progress")
+  expect(tables).not.toContain("study_sessions")
+  expect(tables).not.toContain("quiz_attempts")
+
+  await request.delete(`${authService}/__test/requests`)
+  await nav.getByRole("link", { name: "Labs" }).click()
+  await expect(page.getByRole("heading", { name: "Make the topology prove it." })).toBeVisible()
+  tables = await readTables(request)
+  expect(tables).toContain("lab_progress")
+  expect(tables).not.toContain("topic_progress")
+  expect(tables).not.toContain("study_sessions")
+  expect(tables).not.toContain("quiz_attempts")
+
+  await nav.getByRole("link", { name: "Readiness" }).click()
+  await expect(page.getByRole("heading", { name: "Know what deserves the next hour." })).toBeVisible()
+  await nav.getByRole("link", { name: "Command drills" }).click()
+  await expect(page.getByRole("heading", { name: "Short drills. Better verification." })).toBeVisible()
+  await nav.getByRole("link", { name: "Dashboard" }).click()
+  await expect(page.getByRole("heading", { name: /Build the route\./ })).toBeVisible()
+
+  await request.post(`${authService}/__test/config`, { data: { delayMs: 0 } })
+})
+
+test("readiness checkpoint launches in a centered dialog and saves a step-by-step attempt", async ({ page, request }) => {
+  await request.delete(`${authService}/__test/requests`)
+  await page.goto("/readiness")
+  await expect(page.getByRole("heading", { name: "Know what deserves the next hour." })).toBeVisible()
+  await expect(page.getByRole("region", { name: "Readiness signals" })).toBeVisible()
+  await expect(page.getByText("Which transport protocol provides sequencing and acknowledgements?")).toHaveCount(0)
+
+  await page.getByRole("button", { name: "Start checkpoint" }).click()
+  const dialog = page.getByRole("dialog")
+  await expect(dialog).toBeVisible()
+  const dialogBox = await dialog.boundingBox()
+  await page.screenshot({ path: "test-results/readiness-checkpoint-desktop.png", animations: "disabled" })
+  expect(dialogBox).not.toBeNull()
+  expect(dialogBox?.width ?? 0).toBeGreaterThan(550)
+  expect(Math.abs((dialogBox?.x ?? 0) + (dialogBox?.width ?? 0) / 2 - 1280 / 2)).toBeLessThan(2)
+  await expect(dialog.getByRole("heading", { name: "Choose your exam domain" })).toBeVisible()
+
+  const domainSelect = dialog.getByRole("combobox", { name: "Quiz domain" })
+  const triggerBox = await domainSelect.boundingBox()
+  expect(triggerBox?.width ?? 0).toBeGreaterThan(300)
+  await domainSelect.click()
+  const finalDomainOption = page.getByRole("option", { name: /6\.0 · Automation and Programmability/ })
+  await expect(finalDomainOption).toBeVisible()
+  const popupBox = await page.locator('[data-slot="select-content"]').boundingBox()
+  await page.screenshot({ path: "test-results/readiness-domain-picker-desktop.png", animations: "disabled" })
+  expect(popupBox?.width ?? 0).toBeGreaterThan(300)
+  expect(Math.abs((popupBox?.width ?? 0) - (triggerBox?.width ?? 0))).toBeLessThan(24)
+  expect(await finalDomainOption.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true)
+
+  await page.keyboard.press("End")
+  await page.keyboard.press("Enter")
+  await expect(domainSelect).toContainText("6.0 · Automation and Programmability")
+  await domainSelect.click()
+  await page.getByRole("option", { name: /1\.0 · Network Fundamentals/ }).click()
+  await dialog.getByRole("button", { name: "Begin checkpoint" }).click()
+
+  await expect(dialog.getByRole("heading", { name: "Question 1 of 10" })).toBeVisible()
+  await expect(dialog.getByText("How many usable host addresses are in a /27 IPv4 subnet?")).toHaveCount(0)
+  const next = dialog.getByRole("button", { name: "Next question" })
+  await expect(next).toBeDisabled()
+  const firstAnswer = dialog.getByRole("button", { name: "A UDP" })
+  await firstAnswer.click()
+  await expect(firstAnswer).toHaveAttribute("aria-pressed", "true")
+  await expect(next).toBeEnabled()
+  await next.click()
+  await expect(dialog.getByRole("heading", { name: "Question 2 of 10" })).toBeVisible()
+  await dialog.getByRole("button", { name: "Back" }).click()
+  await expect(dialog.getByRole("button", { name: "A UDP" })).toHaveAttribute("aria-pressed", "true")
+
+  await dialog.getByRole("button", { name: "Next question" }).click()
+  for (let currentQuestion = 2; currentQuestion <= 10; currentQuestion++) {
+    await expect(dialog.getByRole("heading", { name: `Question ${currentQuestion} of 10` })).toBeVisible()
+    const answerA = dialog.getByRole("button", { name: /^A / })
+    await answerA.click()
+    if (currentQuestion < 10) {
+      await dialog.getByRole("button", { name: "Next question" }).click()
+    }
+  }
+
+  await expect(dialog.getByRole("heading", { name: "Question 10 of 10" })).toBeVisible()
+  await expect(dialog.getByRole("button", { name: "Save checkpoint" })).toBeEnabled()
+  await dialog.getByRole("button", { name: "Save checkpoint" }).click()
+  await expect(dialog.getByText("Attempt saved")).toBeVisible()
+  await expect(dialog.getByRole("heading", { name: /%/ })).toBeVisible()
+
+  const requests = await request.get(`${authService}/__test/requests`).then((response) => response.json()) as Array<{ method?: string; table?: string }>
+  expect(requests).toContainEqual(expect.objectContaining({ method: "POST", table: "quiz_attempts" }))
+
+  await dialog.getByRole("button", { name: "Review answers" }).click()
+  await expect(dialog.getByRole("heading", { name: "Review 1 of 10" })).toBeVisible()
+  await expect(dialog.getByText("Why", { exact: true })).toBeVisible()
+  await dialog.getByRole("button", { name: "Next answer" }).click()
+  await expect(dialog.getByRole("heading", { name: "Review 2 of 10" })).toBeVisible()
+})
+
+test.afterEach(async ({ request }) => {
+  await request.post(`${authService}/__test/config`, { data: { delayMs: 0 } })
+})
+
+async function readTables(request: APIRequestContext) {
+  const response = await request.get(`${authService}/__test/requests`)
+  const rows = await response.json() as Array<{ table?: string }>
+  return [...new Set(rows.flatMap((row) => row.table ? [row.table] : []))]
+}

@@ -5,18 +5,18 @@ import { createClient } from "./server"
 
 export async function requireOwner() {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { data, error } = await supabase.auth.getClaims()
+  const claims = data?.claims
 
-  if (!user) {
+  if (error || !claims?.sub) {
     redirect("/login?error=auth-required")
   }
 
-  if (!isAllowedEmail(user.email, getAllowedEmail())) {
+  const email = typeof claims.email === "string" ? claims.email : null
+  if (!isAllowedEmail(email, getAllowedEmail())) {
     await supabase.auth.signOut()
     redirect("/login?error=not-allowed")
   }
 
-  return user
+  return { id: claims.sub, email }
 }
