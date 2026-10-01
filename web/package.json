@@ -12,6 +12,7 @@
     "lighthouse": "node scripts/lighthouse.mjs",
     "verify:performance": "npm run build:e2e && npm run test:e2e && npm run lighthouse",
     "test:curriculum": "node --experimental-strip-types --experimental-transform-types scripts/curriculum-registry.test.mjs",
+    "test:drills": "node --experimental-strip-types --experimental-transform-types scripts/command-drills.test.mjs",
     "test:analytics": "node --experimental-strip-types --experimental-transform-types scripts/analytics.test.mjs",
     "test:quizzes": "node --experimental-strip-types --experimental-transform-types scripts/quizzes.test.mjs",
     "test:migration": "node --test scripts/migration.test.mjs",
