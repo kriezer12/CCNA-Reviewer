@@ -6,5 +6,5 @@ import { Button } from "@/components/ui/button"
 
 export function RetryButton() {
   const router = useRouter()
-  return <Button onClick={() => router.refresh()} size="sm" variant="outline">Retry</Button>
+  return <Button className="min-h-11" onClick={() => router.refresh()} variant="outline">Retry</Button>
 }

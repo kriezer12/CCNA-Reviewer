@@ -1,12 +1,15 @@
 import Link from "next/link"
-import { ArrowUpRight, BookOpen, Clock3, FlaskConical, ShieldCheck } from "lucide-react"
+import { ArrowUpRight, Clock3, ShieldCheck } from "lucide-react"
 
 import { DashboardDataError } from "@/components/dashboard/dashboard-data-error"
+import { StudyTodayPanel } from "@/components/dashboard/study-today-panel"
+import { commandDrills } from "@/content/command-drills"
 import { Badge } from "@/components/ui/badge"
 import { buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { calculateQuizScore, loadDashboardModel } from "@/lib/dashboard-model"
+import { selectStudyToday } from "@/lib/study-today-model"
 import { requireOwner } from "@/lib/supabase/auth"
 
 export const dynamic = "force-dynamic"
@@ -22,6 +25,7 @@ export default async function Home() {
     latestAttempt,
     recentActivity,
   } = model
+  const recommendation = selectStudyToday(model.data.topics, model.data.labs, commandDrills, !dataError)
 
   return (
     <>
@@ -34,14 +38,6 @@ export default async function Home() {
           <p className="max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
             Your short view of progress, recent activity, and the next study action after work.
           </p>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Link className={buttonVariants({ size: "lg" })} href="/roadmap">
-              <BookOpen data-icon="inline-start" /> Continue roadmap <ArrowUpRight data-icon="inline-end" />
-            </Link>
-            <Link className={buttonVariants({ size: "lg", variant: "outline" })} href="/labs">
-              <FlaskConical data-icon="inline-start" /> Open labs
-            </Link>
-          </div>
         </div>
         <Card className="halftone border-border bg-muted/40">
           <CardHeader>
@@ -61,6 +57,8 @@ export default async function Home() {
       </section>
 
       {dataError ? <DashboardDataError /> : null}
+
+      <StudyTodayPanel recommendation={recommendation} />
 
       <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
         <Card>
