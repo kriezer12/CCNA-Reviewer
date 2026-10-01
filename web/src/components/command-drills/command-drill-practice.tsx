@@ -8,9 +8,10 @@ import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import type { CommandDrill } from "@/content/command-drills"
-import { curriculum } from "@/content/curriculum"
 
-export function CommandDrillPractice({ drill, nextId, labTitle }: { drill: CommandDrill; nextId: string; labTitle?: string }) {
+interface SourceReference { readonly title: string; readonly locator: string; readonly url?: string }
+
+export function CommandDrillPractice({ drill, nextId, labTitle, sources }: { drill: CommandDrill; nextId: string; labTitle?: string; sources: readonly SourceReference[] }) {
   const [enteredCommand, setEnteredCommand] = useState("")
   const [revealed, setRevealed] = useState(false)
 
@@ -19,7 +20,7 @@ export function CommandDrillPractice({ drill, nextId, labTitle }: { drill: Comma
       <Card className="min-w-0">
         <CardHeader className="gap-3">
           <div className="flex flex-wrap items-center gap-2"><Badge variant="outline">{drill.id}</Badge><span className="text-sm text-muted-foreground">Objectives {drill.objectiveIds.join(", ")} · {drill.durationMinutes}-minute suggested warm-up</span></div>
-          <CardTitle className="text-2xl" id="drill-heading">{drill.title}</CardTitle>
+          <h2 className="text-2xl font-semibold" id="drill-heading">{drill.title}</h2>
           <CardDescription className="text-base leading-7">{drill.scenario}</CardDescription>
         </CardHeader>
         <CardContent className="flex min-w-0 flex-col gap-5">
@@ -54,7 +55,7 @@ export function CommandDrillPractice({ drill, nextId, labTitle }: { drill: Comma
           ) : null}
         </CardContent>
       </Card>
-      <aside className="min-w-0"><Card><CardHeader><CardTitle className="text-lg">Study references</CardTitle></CardHeader><CardContent className="flex flex-col gap-4 text-sm leading-6"><p><strong>Focus:</strong> {drill.objective}</p><ul className="list-disc space-y-1 pl-5">{drill.sourceLocators.map((locator) => { const source = curriculum.sources.find((item) => item.id === locator.sourceId); return <li key={`${locator.sourceId}-${locator.locator}`}>{source?.title} · {locator.locator}</li> })}</ul>{drill.labId && labTitle ? <Link className={buttonVariants({ className: "min-h-11 whitespace-normal", variant: "outline" })} href={`/labs/${drill.labId}`}>Open {drill.labId}: {labTitle} <ArrowUpRight data-icon="inline-end" /></Link> : null}</CardContent></Card></aside>
+      <aside className="min-w-0"><Card><CardHeader><CardTitle className="text-lg">Study references</CardTitle></CardHeader><CardContent className="flex flex-col gap-4 text-sm leading-6"><p><strong>Focus:</strong> {drill.objective}</p><ul className="list-disc space-y-1 pl-5">{sources.map((source) => <li key={`${source.title}-${source.locator}`}>{source.url ? <a className="underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring" href={source.url} rel="noreferrer" target="_blank">{source.title}</a> : source.title} · {source.locator}</li>)}</ul>{drill.labId && labTitle ? <Link className={buttonVariants({ className: "min-h-11 whitespace-normal", variant: "outline" })} href={`/labs/${drill.labId}`}>Open {drill.labId}: {labTitle} <ArrowUpRight data-icon="inline-end" /></Link> : null}</CardContent></Card></aside>
     </article>
   )
 }

@@ -20,6 +20,7 @@ test("command drill index keeps answers hidden and selected drills reset through
   await expect(page.getByText("show ip interface brief", { exact: true })).toBeVisible()
   await expect(command).toHaveValue("show ip int brief")
   await expect(page.getByText(/Illustrative output — not run against a real device/)).toBeVisible()
+  await page.screenshot({ path: "test-results/command-drill-desktop.png", fullPage: true, animations: "disabled" })
   await expect(page.getByRole("link", { name: /Open L01:/ })).toHaveAttribute("href", "/labs/L01")
 
   await page.getByRole("button", { name: "Try again" }).click()

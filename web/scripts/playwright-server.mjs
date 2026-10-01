@@ -13,6 +13,10 @@ const publicJwk = publicKey.export({ format: "jwk" })
 const accessToken = createAccessToken()
 let responseDelayMs = Number(process.env.E2E_RESPONSE_DELAY_MS ?? 0)
 let requests = []
+let failReads = new Set()
+let failWrites = new Set()
+let expireAuth = false
+let fixtureRows = {}
 
 const user = {
   id: "e2e-owner",
@@ -66,7 +70,11 @@ const authServer = createServer(async (request, response) => {
   if (requestUrl.pathname === "/__test/config" && request.method === "POST") {
     const body = await readJson(request)
     responseDelayMs = Math.max(0, Math.min(Number(body.delayMs) || 0, 2_000))
-    sendJson(response, 200, { responseDelayMs }, corsHeaders)
+    failReads = new Set(body.failReads ?? [])
+    failWrites = new Set(body.failWrites ?? [])
+    expireAuth = Boolean(body.expireAuth)
+    fixtureRows = body.rows ?? {}
+    sendJson(response, 200, { responseDelayMs, failReads: [...failReads], failWrites: [...failWrites], expireAuth }, corsHeaders)
     return
   }
 
@@ -98,7 +106,7 @@ const authServer = createServer(async (request, response) => {
 
   if (requestUrl.pathname === "/auth/v1/user" && request.method === "GET") {
     const authorization = request.headers.authorization
-    if (authorization !== `Bearer ${accessToken}`) {
+    if (expireAuth || authorization !== `Bearer ${accessToken}`) {
       sendJson(response, 401, { message: "Invalid token", code: "invalid_token" }, corsHeaders)
       return
     }
@@ -112,11 +120,24 @@ const authServer = createServer(async (request, response) => {
     const table = requestUrl.pathname.slice("/rest/v1/".length)
     requests.push({ method: request.method, table, query: requestUrl.searchParams.get("select") ?? "" })
     if (responseDelayMs) await delay(responseDelayMs)
+    if ((request.method === "GET" && failReads.has(table)) || (request.method !== "GET" && failWrites.has(table))) {
+      sendJson(response, 503, { message: `Fixture failure for ${table}`, code: "fixture_failure" }, corsHeaders)
+      return
+    }
+    if (request.method === "POST" && (table === "topic_progress" || table === "lab_progress")) {
+      const record = await readJson(request)
+      const key = table === "topic_progress" ? "objective_id" : "lab_id"
+      const existing = fixtureRows[table] ?? []
+      fixtureRows[table] = [...existing.filter((row) => row[key] !== record[key]), record]
+    }
+    const tableRows = request.method === "GET" ? (fixtureRows[table] ?? []) : []
+    const requestedLab = requestUrl.searchParams.get("lab_id")?.replace(/^eq\./, "")
+    const rows = requestedLab ? tableRows.filter((row) => row.lab_id === requestedLab) : tableRows
     response.writeHead(200, {
       ...corsHeaders,
       "Content-Type": "application/json; charset=utf-8",
-      "Content-Range": "0-0/0",
-    }).end("[]")
+      "Content-Range": rows.length ? `0-${rows.length - 1}/${rows.length}` : "0-0/0",
+    }).end(JSON.stringify(rows))
     return
   }
 

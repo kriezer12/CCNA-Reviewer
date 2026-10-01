@@ -21,33 +21,40 @@ export function LabEvidenceForm({ lab, initialRow }: { lab: Lab; initialRow: Lab
   const [error, setError] = useState("")
   const [saved, setSaved] = useState({ status: initialRow?.status ?? "not_started", mode: initialRow?.evidence_mode ?? lab.evidence.mode, note: initialRow?.evidence_note ?? "" })
   const dirty = status !== saved.status || mode !== saved.mode || note !== saved.note
-  const dirtyRef = useRef(dirty)
-  dirtyRef.current = dirty
+  const allowLeave = useRef(false)
 
   useEffect(() => {
+    if (!dirty) return
     const prompt = "You have unsaved lab evidence. Discard these edits and leave?"
+    const guardState = { ...window.history.state, labEvidenceGuard: true }
+    window.history.pushState(guardState, "", window.location.href)
     function beforeUnload(event: BeforeUnloadEvent) {
-      if (!dirtyRef.current) return
+      if (allowLeave.current) return
       event.preventDefault()
       event.returnValue = ""
     }
     function onLink(event: MouseEvent) {
-      if (!dirtyRef.current || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
       const anchor = (event.target as Element).closest<HTMLAnchorElement>("a[href]")
       if (!anchor || !document.contains(anchor)) return
       if (anchor.hash && anchor.pathname === location.pathname && anchor.search === location.search) return
-      if (!window.confirm(prompt)) event.preventDefault()
+      if (window.confirm(prompt)) allowLeave.current = true
+      else event.preventDefault()
     }
     function onPopState() {
-      if (!dirtyRef.current) return
-      if (window.confirm(prompt)) return
-      window.history.forward()
+      if (allowLeave.current) return
+      if (window.confirm(prompt)) {
+        allowLeave.current = true
+        window.history.back()
+      } else {
+        window.history.pushState(guardState, "", window.location.href)
+      }
     }
     window.addEventListener("beforeunload", beforeUnload)
     document.addEventListener("click", onLink, true)
     window.addEventListener("popstate", onPopState)
     return () => { window.removeEventListener("beforeunload", beforeUnload); document.removeEventListener("click", onLink, true); window.removeEventListener("popstate", onPopState) }
-  }, [])
+  }, [dirty])
 
   async function save(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()

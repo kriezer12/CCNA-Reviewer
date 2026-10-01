@@ -19,6 +19,8 @@ const reportRoutes = [
   { name: "roadmap", path: "/roadmap", authenticated: true },
   { name: "roadmap-week", path: "/roadmap/week/01", authenticated: true },
   { name: "labs", path: "/labs", authenticated: true },
+  { name: "lab-workspace", path: "/labs/L01", authenticated: true },
+  { name: "command-drill", path: "/command-drills?drill=interfaces", authenticated: true },
   { name: "readiness", path: "/readiness", authenticated: true },
 ]
 
