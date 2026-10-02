@@ -1,16 +1,16 @@
 import Link from "next/link"
-import { ArrowUpRight, BookOpen, Clock3, FlaskConical, Route, ShieldCheck, Terminal } from "lucide-react"
+import { ArrowUpRight, Clock3, ShieldCheck } from "lucide-react"
 
-import { DashboardShell } from "@/components/dashboard/dashboard-shell"
 import { DashboardDataError } from "@/components/dashboard/dashboard-data-error"
+import { StudyTodayPanel } from "@/components/dashboard/study-today-panel"
+import { commandDrills } from "@/content/command-drills"
 import { Badge } from "@/components/ui/badge"
 import { buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { curriculum } from "@/content/curriculum"
 import { calculateQuizScore, loadDashboardModel } from "@/lib/dashboard-model"
+import { selectStudyToday } from "@/lib/study-today-model"
 import { requireOwner } from "@/lib/supabase/auth"
-import { cn } from "cn"
 
 export const dynamic = "force-dynamic"
 
@@ -20,15 +20,15 @@ export default async function Home() {
   const {
     dataError,
     objectiveCompletion,
-    labCompletion,
     studyMinutes,
     streak,
     latestAttempt,
     recentActivity,
   } = model
+  const recommendation = selectStudyToday(model.data.topics, model.data.labs, commandDrills, !dataError)
 
   return (
-    <DashboardShell active="dashboard" userEmail={user.email}>
+    <>
       <section className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-end">
         <div className="flex max-w-3xl flex-col gap-5">
           <Badge className="w-fit font-mono text-[10px] uppercase tracking-[0.16em]" variant="secondary">Study context</Badge>
@@ -36,24 +36,16 @@ export default async function Home() {
             Build the route. <span className="text-muted-foreground">Understand the path.</span>
           </h1>
           <p className="max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
-            Your short view of progress, recent evidence, and the next study action after work.
+            Your short view of progress, recent activity, and the next study action after work.
           </p>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Link className={buttonVariants({ size: "lg" })} href="/roadmap">
-              <BookOpen data-icon="inline-start" /> Continue roadmap <ArrowUpRight data-icon="inline-end" />
-            </Link>
-            <Link className={buttonVariants({ size: "lg", variant: "outline" })} href="/labs">
-              <FlaskConical data-icon="inline-start" /> Open labs
-            </Link>
-          </div>
         </div>
         <Card className="halftone border-border bg-muted/40">
           <CardHeader>
-            <CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Exam coverage</CardDescription>
+            <CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Objective coverage</CardDescription>
             <CardTitle className="font-mono text-3xl tracking-tight">{objectiveCompletion ? `${objectiveCompletion.completed} / ${objectiveCompletion.total}` : "Unavailable"}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
-            {objectiveCompletion ? <><Progress value={objectiveCompletion.percentage} aria-label="Exam objective coverage" /><div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground"><span>Lesson understanding</span><span>{objectiveCompletion.percentage}%</span></div></> : <p className="text-sm text-muted-foreground">Retry to load saved objective progress.</p>}
+            {objectiveCompletion ? <><Progress value={objectiveCompletion.percentage} aria-label="Objective coverage" /><div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground"><span>Lesson understanding</span><span>{objectiveCompletion.percentage}%</span></div></> : <p className="text-sm text-muted-foreground">Retry to load saved objective progress.</p>}
           </CardContent>
         </Card>
       </section>
@@ -66,11 +58,13 @@ export default async function Home() {
 
       {dataError ? <DashboardDataError /> : null}
 
+      <StudyTodayPanel recommendation={recommendation} />
+
       <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
         <Card>
           <CardHeader>
             <CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Saved activity</CardDescription>
-            <CardTitle>Recent evidence</CardTitle>
+            <CardTitle>Recent study activity</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             {recentActivity.length ? recentActivity.map((activity, index) => <div className="flex items-start justify-between gap-4 border-b border-border pb-3 last:border-0 last:pb-0" key={`${activity.date}-${index}`}><div className="flex min-w-0 flex-col gap-1"><span className="truncate text-sm font-medium">{activity.label}</span><span className="truncate text-xs text-muted-foreground">{activity.detail}</span></div><span className="shrink-0 font-mono text-[10px] text-muted-foreground">{activity.date.slice(0, 10)}</span></div>) : <p className="text-sm leading-6 text-muted-foreground">{dataError ? "Saved activity is unavailable. Retry to load it." : "No saved activity yet. Record a lesson, lab, session, or quiz to see it here."}</p>}
@@ -87,23 +81,10 @@ export default async function Home() {
         </Card>
       </section>
 
-      <section aria-labelledby="study-areas-heading" className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1"><span className="font-mono text-[10px] uppercase tracking-[0.15em] text-muted-foreground">Study areas</span><h2 className="text-2xl font-semibold tracking-tight" id="study-areas-heading">Choose where to work next.</h2></div>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <AreaLink href="/roadmap" icon={Route} title="Roadmap" detail={`${curriculum.roadmap.weeks.length} weeks mapped to exam day.`} />
-          <AreaLink href="/labs" icon={FlaskConical} title="Labs" detail={`${labCompletion ? labCompletion.total : curriculum.labs.length} practical activities with evidence.`} />
-          <AreaLink href="/command-drills" icon={Terminal} title="Command drills" detail="Short IOS retrieval prompts before configuration work." />
-          <AreaLink href="/readiness" icon={ShieldCheck} title="Readiness" detail="Quiz signal, weak spots, time, and streak in one view." />
-        </div>
-      </section>
-    </DashboardShell>
+    </>
   )
 }
 
 function Stat({ value, label }: { value: string; label: string }) {
   return <div className="flex flex-col gap-1"><span className="font-mono text-2xl font-semibold tracking-tight text-foreground">{value}</span><span className="font-mono text-[10px] uppercase tracking-[0.15em] text-muted-foreground">{label}</span></div>
-}
-
-function AreaLink({ href, icon: Icon, title, detail }: { href: string; icon: typeof Route; title: string; detail: string }) {
-  return <Link className={cn("group flex min-h-32 flex-col justify-between rounded-lg border border-border bg-card p-5 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50")} href={href}><div className="flex items-start justify-between gap-3"><Icon className="size-5 text-muted-foreground transition-colors group-hover:text-foreground" /><ArrowUpRight className="size-4 text-muted-foreground" /></div><div className="flex flex-col gap-1"><span className="font-medium">{title}</span><span className="text-sm leading-5 text-muted-foreground">{detail}</span></div></Link>
 }

@@ -2,7 +2,6 @@ import Link from "next/link"
 import { ArrowUpRight, Check, ChevronRight } from "lucide-react"
 
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
-import { DashboardShell } from "@/components/dashboard/dashboard-shell"
 import { DashboardDataError } from "@/components/dashboard/dashboard-data-error"
 import { ObjectiveProgressControl } from "@/components/dashboard/objective-progress-control"
 import { Badge } from "@/components/ui/badge"
@@ -17,10 +16,10 @@ export const dynamic = "force-dynamic"
 
 export default async function RoadmapPage() {
   const user = await requireOwner()
-  const model = await loadDashboardModel(user.id)
+  const model = await loadDashboardModel(user.id, { labs: false, sessions: false, attempts: false })
 
   return (
-    <DashboardShell active="roadmap" headerLabel="Roadmap / 18-week sequence" userEmail={user.email}>
+    <>
       <DashboardPageHeader
         description="Follow the 18-week sequence, then mark the objective understanding you can explain without notes."
         eyebrow="Study path / 200-301 v1.1"
@@ -50,6 +49,6 @@ export default async function RoadmapPage() {
       </Card>
 
       <ObjectiveProgressControl objectives={curriculum.objectives} initialRows={model.data.topics} />
-    </DashboardShell>
+    </>
   )
 }

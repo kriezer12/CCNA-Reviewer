@@ -1,0 +1,68 @@
+[
+  {
+    "route": "/login",
+    "performance": 0.89,
+    "accessibility": 0.98,
+    "bestPractices": 1,
+    "fcpMs": 802.0734,
+    "lcpMs": 3035.1101000000003,
+    "tbtMs": 253,
+    "cls": 0,
+    "totalBytes": 331036
+  },
+  {
+    "route": "/",
+    "performance": 0.95,
+    "accessibility": 1,
+    "bestPractices": 1,
+    "fcpMs": 800.1210000000001,
+    "lcpMs": 2798.121,
+    "tbtMs": 86,
+    "cls": 0,
+    "totalBytes": 340927
+  },
+  {
+    "route": "/roadmap",
+    "performance": 0.95,
+    "accessibility": 1,
+    "bestPractices": 1,
+    "fcpMs": 941.328,
+    "lcpMs": 3006.3280000000004,
+    "tbtMs": 39.5,
+    "cls": 0,
+    "totalBytes": 406251
+  },
+  {
+    "route": "/roadmap/week/01",
+    "performance": 0.86,
+    "accessibility": 1,
+    "bestPractices": 1,
+    "fcpMs": 974.386,
+    "lcpMs": 3472.386000000001,
+    "tbtMs": 219.00000000000045,
+    "cls": 0,
+    "totalBytes": 400074
+  },
+  {
+    "route": "/labs",
+    "performance": 0.98,
+    "accessibility": 1,
+    "bestPractices": 1,
+    "fcpMs": 1020.356,
+    "lcpMs": 2070.356,
+    "tbtMs": 118.5,
+    "cls": 0,
+    "totalBytes": 400563
+  },
+  {
+    "route": "/readiness",
+    "performance": 0.96,
+    "accessibility": 1,
+    "bestPractices": 1,
+    "fcpMs": 843.0340000000001,
+    "lcpMs": 2566.034,
+    "tbtMs": 115,
+    "cls": 0,
+    "totalBytes": 413720
+  }
+]

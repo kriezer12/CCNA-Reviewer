@@ -1,0 +1,90 @@
+[
+  {
+    "route": "/login",
+    "performance": 0.94,
+    "accessibility": 0.98,
+    "bestPractices": 1,
+    "fcpMs": 787.374,
+    "lcpMs": 2437.3740000000007,
+    "tbtMs": 224,
+    "cls": 0,
+    "totalBytes": 331330
+  },
+  {
+    "route": "/",
+    "performance": 0.96,
+    "accessibility": 1,
+    "bestPractices": 1,
+    "fcpMs": 921.568,
+    "lcpMs": 2848.568,
+    "tbtMs": 48,
+    "cls": 0,
+    "totalBytes": 341984
+  },
+  {
+    "route": "/roadmap",
+    "performance": 0.92,
+    "accessibility": 1,
+    "bestPractices": 1,
+    "fcpMs": 929.7560000000001,
+    "lcpMs": 3359.512,
+    "tbtMs": 80.00000000000045,
+    "cls": 0,
+    "totalBytes": 404724
+  },
+  {
+    "route": "/roadmap/week/01",
+    "performance": 0.94,
+    "accessibility": 1,
+    "bestPractices": 1,
+    "fcpMs": 933.0609999999999,
+    "lcpMs": 3023.0609999999992,
+    "tbtMs": 71.5,
+    "cls": 0,
+    "totalBytes": 398955
+  },
+  {
+    "route": "/labs",
+    "performance": 0.96,
+    "accessibility": 1,
+    "bestPractices": 1,
+    "fcpMs": 923.376,
+    "lcpMs": 2746.752,
+    "tbtMs": 44.5,
+    "cls": 0,
+    "totalBytes": 405569
+  },
+  {
+    "route": "/labs/L01",
+    "performance": 0.94,
+    "accessibility": 1,
+    "bestPractices": 1,
+    "fcpMs": 774.806,
+    "lcpMs": 3050.709,
+    "tbtMs": 87.5,
+    "cls": 0,
+    "totalBytes": 342662
+  },
+  {
+    "route": "/command-drills?drill=interfaces",
+    "performance": 0.97,
+    "accessibility": 1,
+    "bestPractices": 1,
+    "fcpMs": 773.7194999999999,
+    "lcpMs": 2671.7194999999997,
+    "tbtMs": 30.5,
+    "cls": 0,
+    "totalBytes": 338897
+  },
+  {
+    "route": "/readiness",
+    "performance": 0.95,
+    "accessibility": 1,
+    "bestPractices": 1,
+    "fcpMs": 769.864,
+    "lcpMs": 3002.863999999999,
+    "tbtMs": 44.00000000000023,
+    "cls": 0,
+    "totalBytes": 412447
+  }
+]

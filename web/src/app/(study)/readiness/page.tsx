@@ -2,7 +2,6 @@ import Link from "next/link"
 import { ArrowUpRight, CheckCircle2, Clock3, Flame, Target } from "lucide-react"
 
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
-import { DashboardShell } from "@/components/dashboard/dashboard-shell"
 import { DashboardDataError } from "@/components/dashboard/dashboard-data-error"
 import { QuizRunner } from "@/components/dashboard/quiz-runner"
 import { buttonVariants } from "@/components/ui/button"
@@ -17,7 +16,7 @@ export default async function ReadinessPage() {
   const model = await loadDashboardModel(user.id)
 
   return (
-    <DashboardShell active="readiness" headerLabel="Readiness / exam signals" userEmail={user.email}>
+    <>
       <DashboardPageHeader
         description="Readiness is a set of signals, not a blended score: coverage, practical evidence, retrieval, and consistent study time."
         eyebrow="Exam signal / decision view"
@@ -52,7 +51,7 @@ export default async function ReadinessPage() {
           {model.dataError ? <p className="text-sm leading-6 text-muted-foreground">Saved quiz history is unavailable. Retry to reload it.</p> : model.data.attempts.length ? <><div aria-label="Quiz score trend" className="flex h-20 items-end gap-2 border-b border-border pb-3">{model.quizTrend.map((score, index) => <div className="flex min-w-0 flex-1 flex-col items-center gap-1" key={`${score}-${index}`}><div className="w-full rounded-sm bg-primary/80" style={{ height: `${Math.max(score, 8)}%` }} /><span className="font-mono text-[9px] text-muted-foreground">{score}%</span></div>)}</div><div className="flex flex-col gap-2">{model.data.attempts.slice(0, 5).map((attempt) => <div className="flex items-center justify-between gap-3 border-b border-border pb-2 last:border-0 last:pb-0" key={attempt.id}><span className="truncate text-sm">{(attempt.objective_ids.length ? attempt.objective_ids : [attempt.topic_id]).join(", ")} tagged checkpoint</span><span className="font-mono text-xs">{calculateQuizScore(attempt.score, attempt.total_questions)}%</span></div>)}</div></> : <p className="text-sm leading-6 text-muted-foreground">Complete a checkpoint to start your quiz trend.</p>}
         </CardContent>
       </Card>
-    </DashboardShell>
+    </>
   )
 }
 

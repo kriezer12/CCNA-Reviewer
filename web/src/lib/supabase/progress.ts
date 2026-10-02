@@ -44,13 +44,15 @@ export interface DashboardData {
   attempts: QuizAttemptRow[]
 }
 
-export async function loadDashboardData(userId: string): Promise<DashboardData> {
+export type DashboardDataScope = Partial<Record<keyof DashboardData, boolean>>
+
+export async function loadDashboardData(userId: string, scope: DashboardDataScope = {}): Promise<DashboardData> {
   const supabase = await createClient()
   const [topics, labs, sessions, attempts] = await Promise.all([
-    supabase.from("topic_progress").select("objective_id,status,completed_at,updated_at").eq("user_id", userId),
-    supabase.from("lab_progress").select("lab_id,status,evidence_mode,evidence_note,completed_at,updated_at").eq("user_id", userId),
-    supabase.from("study_sessions").select("id,study_date,duration_minutes,objective_id,lab_id,notes,created_at").eq("user_id", userId).order("study_date", { ascending: false }),
-    supabase.from("quiz_attempts").select("id,quiz_id,topic_id,objective_ids,score,total_questions,selected_answers,attempted_at").eq("user_id", userId).order("attempted_at", { ascending: false }),
+    scope.topics === false ? Promise.resolve({ data: [], error: null }) : supabase.from("topic_progress").select("objective_id,status,completed_at,updated_at").eq("user_id", userId),
+    scope.labs === false ? Promise.resolve({ data: [], error: null }) : supabase.from("lab_progress").select("lab_id,status,evidence_mode,evidence_note,completed_at,updated_at").eq("user_id", userId),
+    scope.sessions === false ? Promise.resolve({ data: [], error: null }) : supabase.from("study_sessions").select("id,study_date,duration_minutes,objective_id,lab_id,notes,created_at").eq("user_id", userId).order("study_date", { ascending: false }),
+    scope.attempts === false ? Promise.resolve({ data: [], error: null }) : supabase.from("quiz_attempts").select("id,quiz_id,topic_id,objective_ids,score,total_questions,selected_answers,attempted_at").eq("user_id", userId).order("attempted_at", { ascending: false }),
   ])
 
   const error = topics.error ?? labs.error ?? sessions.error ?? attempts.error

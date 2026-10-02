@@ -2,9 +2,7 @@ import Link from "next/link"
 import { ArrowUpRight } from "lucide-react"
 
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
-import { DashboardShell } from "@/components/dashboard/dashboard-shell"
 import { DashboardDataError } from "@/components/dashboard/dashboard-data-error"
-import { LabProgressControl } from "@/components/dashboard/lab-progress-control"
 import { StudySessionForm } from "@/components/dashboard/study-session-form"
 import { Badge } from "@/components/ui/badge"
 import { buttonVariants } from "@/components/ui/button"
@@ -18,10 +16,10 @@ export const dynamic = "force-dynamic"
 
 export default async function LabsPage() {
   const user = await requireOwner()
-  const model = await loadDashboardModel(user.id)
+  const model = await loadDashboardModel(user.id, { topics: false, sessions: false, attempts: false })
 
   return (
-    <DashboardShell active="labs" headerLabel="Labs / evidence sequence" userEmail={user.email}>
+    <>
       <DashboardPageHeader
         description="Configure, verify, and record the evidence that makes a lab demonstration trustworthy."
         eyebrow="Practical sequence / Packet Tracer and external labs"
@@ -39,7 +37,10 @@ export default async function LabsPage() {
         <Card>
           <CardHeader className="border-b border-border"><CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Practical sequence</CardDescription><div className="flex items-center justify-between gap-3"><CardTitle>Lab queue</CardTitle><Badge variant="outline">{model.labCompletion ? `${model.labCompletion.completed} / ${model.labCompletion.total}` : "Unavailable"}</Badge></div></CardHeader>
           <CardContent className="flex flex-col gap-0 p-0">
-            {model.labs.map((lab) => <div className="flex flex-col gap-3 border-b border-border px-5 py-5 last:border-b-0 sm:flex-row sm:items-center sm:px-6" key={lab.id}><span className="font-mono text-xs text-muted-foreground">{lab.id}</span><div className="flex min-w-0 flex-1 flex-col gap-1"><span className="font-medium">{lab.name}</span><span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{lab.type} · {lab.time} · evidence: {lab.evidence}</span></div><Badge variant={lab.state === "Next" ? "default" : lab.state === "Complete" ? "outline" : "secondary"}>{lab.state}</Badge></div>)}
+            {curriculum.labs.map((lab) => {
+              const saved = model.data.labs.find((row) => row.lab_id === lab.id)
+              return <Link className="flex min-h-14 flex-col gap-2 border-b border-border px-5 py-5 text-sm last:border-b-0 hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring sm:flex-row sm:items-center sm:px-6" href={`/labs/${lab.id}`} key={lab.id}><span className="font-mono text-xs text-muted-foreground">{lab.id}</span><span className="min-w-0 flex-1 font-medium">{lab.title}</span><span className="text-muted-foreground">{lab.durationMinutes} min</span><Badge variant={saved?.status === "complete" ? "outline" : "secondary"}>{model.dataError ? "Unavailable" : saved?.status?.replaceAll("_", " ") ?? "Not started"}</Badge><ArrowUpRight aria-hidden="true" className="size-4" /></Link>
+            })}
           </CardContent>
         </Card>
         <Card className="halftone">
@@ -48,8 +49,7 @@ export default async function LabsPage() {
         </Card>
       </section>
 
-      <LabProgressControl labs={curriculum.labs} initialRows={model.data.labs} />
       <StudySessionForm objectives={curriculum.objectives} labs={curriculum.labs} />
-    </DashboardShell>
+    </>
   )
 }
