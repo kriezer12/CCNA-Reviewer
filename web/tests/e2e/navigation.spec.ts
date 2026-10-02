@@ -137,6 +137,41 @@ test("lab evidence guards browser Back and reload until edits are discarded", as
   await expect(page).toHaveURL(/\/labs$/)
 })
 
+test("opening a source in a new tab preserves the unsaved evidence guard", async ({ page }) => {
+  await page.goto("/labs/L01")
+  await page.getByLabel(/Evidence note/).fill("Unsaved evidence")
+  let dialogs = 0
+  page.on("dialog", (dialog) => { dialogs++; void dialog.dismiss() })
+  const [popup] = await Promise.all([
+    page.waitForEvent("popup"),
+    page.locator('section[aria-labelledby="lab-sources"] a[target="_blank"]').first().click(),
+  ])
+  await popup.close()
+  expect(dialogs).toBe(0)
+  await page.getByRole("link", { name: "Labs", exact: true }).first().click()
+  expect(dialogs).toBe(1)
+  await expect(page).toHaveURL(/\/labs\/L01$/)
+  await expect(page.getByLabel(/Evidence note/)).toHaveValue("Unsaved evidence")
+})
+
+test("lab evidence controls support keyboard selection, entry, and save", async ({ page }) => {
+  await page.goto("/labs/L01")
+  const status = page.getByLabel("Lab status")
+  await status.focus()
+  await status.press("End")
+  await expect(status).toHaveValue("complete")
+  const mode = page.getByLabel("Evidence mode")
+  await mode.focus()
+  await mode.press("End")
+  await expect(mode).toHaveValue("verified")
+  const note = page.getByLabel(/Evidence note/)
+  await note.focus()
+  await page.keyboard.type("Observed switch configuration, interface and MAC output, and reload persistence.")
+  await page.getByRole("button", { name: "Save lab evidence" }).focus()
+  await page.keyboard.press("Enter")
+  await expect(page.getByText("Saved. Recorded demonstration refreshed.")).toBeVisible()
+})
+
 test("expired session cannot report a successful lab save", async ({ page, request }) => {
   await page.goto("/labs/L01")
   await page.getByLabel(/Evidence note/).fill("Evidence to retry after signing in")

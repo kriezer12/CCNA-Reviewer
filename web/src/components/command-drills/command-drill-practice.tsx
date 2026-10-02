@@ -32,6 +32,7 @@ export function CommandDrillPractice({ drill, nextId, labTitle, sources }: { dri
               autoComplete="off"
               className="min-h-11 w-full min-w-0 rounded-lg border border-input bg-background px-3 font-mono text-base outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
               id="drill-command"
+              name="drill-command"
               onChange={(event) => setEnteredCommand(event.target.value)}
               spellCheck={false}
               type="text"
@@ -41,7 +42,7 @@ export function CommandDrillPractice({ drill, nextId, labTitle, sources }: { dri
           </div>
           <div className="flex flex-wrap gap-3">
             {!revealed ? <Button className="min-h-11" onClick={() => setRevealed(true)}>Reveal answer</Button> : <Button className="min-h-11" onClick={() => { setEnteredCommand(""); setRevealed(false) }} variant="outline">Try again</Button>}
-            <Link className={buttonVariants({ className: "min-h-11", variant: "outline" })} href={`/command-drills?drill=${encodeURIComponent(nextId)}`}>Next drill <ArrowUpRight data-icon="inline-end" /></Link>
+            <Link className={buttonVariants({ className: "min-h-11", variant: "outline" })} href={`/command-drills?drill=${encodeURIComponent(nextId)}`}>Next drill <ArrowUpRight aria-hidden="true" data-icon="inline-end" /></Link>
           </div>
           {revealed ? (
             <section aria-labelledby="answer-heading" className="flex min-w-0 flex-col gap-4 border-t border-border pt-5">
@@ -55,7 +56,7 @@ export function CommandDrillPractice({ drill, nextId, labTitle, sources }: { dri
           ) : null}
         </CardContent>
       </Card>
-      <aside className="min-w-0"><Card><CardHeader><CardTitle className="text-lg">Study references</CardTitle></CardHeader><CardContent className="flex flex-col gap-4 text-sm leading-6"><p><strong>Focus:</strong> {drill.objective}</p><ul className="list-disc space-y-1 pl-5">{sources.map((source) => <li key={`${source.title}-${source.locator}`}>{source.url ? <a className="underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring" href={source.url} rel="noreferrer" target="_blank">{source.title}</a> : source.title} · {source.locator}</li>)}</ul>{drill.labId && labTitle ? <Link className={buttonVariants({ className: "min-h-11 whitespace-normal", variant: "outline" })} href={`/labs/${drill.labId}`}>Open {drill.labId}: {labTitle} <ArrowUpRight data-icon="inline-end" /></Link> : null}</CardContent></Card></aside>
+      <aside className="min-w-0"><Card><CardHeader><CardTitle className="text-lg">Study references</CardTitle></CardHeader><CardContent className="flex flex-col gap-4 text-sm leading-6"><p><strong>Focus:</strong> {drill.objective}</p><ul className="list-disc space-y-1 pl-5">{sources.map((source) => <li key={`${source.title}-${source.locator}`}>{source.url ? <a className="underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring" href={source.url} rel="noreferrer" target="_blank">{source.title}</a> : source.title} · {source.locator}</li>)}</ul>{drill.labId && labTitle ? <Link className={buttonVariants({ className: "min-h-11 whitespace-normal", variant: "outline" })} href={`/labs/${drill.labId}`}>Open {drill.labId}: {labTitle} <ArrowUpRight aria-hidden="true" data-icon="inline-end" /></Link> : null}</CardContent></Card></aside>
     </article>
   )
 }

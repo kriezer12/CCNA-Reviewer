@@ -25,6 +25,7 @@ export function LabEvidenceForm({ lab, initialRow }: { lab: Lab; initialRow: Lab
 
   useEffect(() => {
     if (!dirty) return
+    allowLeave.current = false
     const prompt = "You have unsaved lab evidence. Discard these edits and leave?"
     const guardState = { ...window.history.state, labEvidenceGuard: true }
     window.history.pushState(guardState, "", window.location.href)
@@ -37,6 +38,7 @@ export function LabEvidenceForm({ lab, initialRow }: { lab: Lab; initialRow: Lab
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
       const anchor = (event.target as Element).closest<HTMLAnchorElement>("a[href]")
       if (!anchor || !document.contains(anchor)) return
+      if (anchor.hasAttribute("download") || (anchor.target && anchor.target.toLowerCase() !== "_self")) return
       if (anchor.hash && anchor.pathname === location.pathname && anchor.search === location.search) return
       if (window.confirm(prompt)) allowLeave.current = true
       else event.preventDefault()
@@ -90,11 +92,11 @@ export function LabEvidenceForm({ lab, initialRow }: { lab: Lab; initialRow: Lab
   return <form className="space-y-5" onSubmit={save}>
     <p className="text-sm leading-6 text-muted-foreground">Saved status: {saved.status.replaceAll("_", " ")}. Saved evidence mode: {saved.mode.replaceAll("_", " ")}. Completing this form records a demonstration; it does not mark lesson understanding or study time.</p>
     <div className="grid gap-5 sm:grid-cols-2">
-      <div className="space-y-2"><label className="block font-medium" htmlFor="lab-status">Lab status</label><select className="min-h-11 w-full rounded-md border border-input bg-background px-3" id="lab-status" value={status} onChange={(event) => { setStatus(event.target.value as Status); setMessage("") }}><option value="not_started">Not started</option><option value="in_progress">In progress</option><option value="complete">Complete — recorded demonstration</option></select></div>
-      <div className="space-y-2"><label className="block font-medium" htmlFor="lab-mode">Evidence mode</label><select className="min-h-11 w-full rounded-md border border-input bg-background px-3" id="lab-mode" value={mode} onChange={(event) => { setMode(event.target.value as Mode); setMessage("") }}><option value="self_reported">Self reported</option><option value="verified">Verified</option></select></div>
+      <div className="space-y-2"><label className="block font-medium" htmlFor="lab-status">Lab status</label><select autoComplete="off" className="min-h-11 w-full rounded-md border border-input bg-background px-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" id="lab-status" name="lab-status" value={status} onChange={(event) => { setStatus(event.target.value as Status); setMessage("") }}><option value="not_started">Not started</option><option value="in_progress">In progress</option><option value="complete">Complete — recorded demonstration</option></select></div>
+      <div className="space-y-2"><label className="block font-medium" htmlFor="lab-mode">Evidence mode</label><select autoComplete="off" className="min-h-11 w-full rounded-md border border-input bg-background px-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" id="lab-mode" name="lab-mode" value={mode} onChange={(event) => { setMode(event.target.value as Mode); setMessage("") }}><option value="self_reported">Self reported</option><option value="verified">Verified</option></select></div>
     </div>
     <p className="text-sm leading-6 text-muted-foreground">Verified means you checked the declared platform and evidence contract yourself. Selecting it does not run an automatic checker. Platform boundary: {lab.platform.limitation}</p>
-    <div className="space-y-2"><label className="block font-medium" htmlFor="lab-evidence-note">Evidence note {status === "complete" ? "(required)" : "(optional)"}</label><p className="text-sm leading-6 text-muted-foreground" id="lab-note-help">Describe topology, command output, test results, and limitations. Cover: {lab.evidence.required.join("; ")}.</p><textarea aria-describedby="lab-note-help" aria-invalid={Boolean(error && status === "complete" && !note.trim())} className="min-h-36 w-full rounded-md border border-input bg-background px-3 py-2 leading-6" id="lab-evidence-note" value={note} onChange={(event) => { setNote(event.target.value); setMessage("") }} /></div>
+    <div className="space-y-2"><label className="block font-medium" htmlFor="lab-evidence-note">Evidence note {status === "complete" ? "(required)" : "(optional)"}</label><p className="text-sm leading-6 text-muted-foreground" id="lab-note-help">Describe topology, command output, test results, and limitations. Cover: {lab.evidence.required.join("; ")}.</p><textarea aria-describedby="lab-note-help" aria-invalid={Boolean(error && status === "complete" && !note.trim())} autoComplete="off" className="min-h-36 w-full rounded-md border border-input bg-background px-3 py-2 leading-6 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" id="lab-evidence-note" name="lab-evidence-note" value={note} onChange={(event) => { setNote(event.target.value); setMessage("") }} /></div>
     <Button className="min-h-11" disabled={saving} type="submit">{saving ? "Saving…" : "Save lab evidence"}</Button>
     {dirty ? <p className="text-sm text-muted-foreground">Unsaved edits. Leaving will ask you to discard them.</p> : null}
     {error ? <p className="text-sm text-destructive" role="alert">{error}</p> : null}

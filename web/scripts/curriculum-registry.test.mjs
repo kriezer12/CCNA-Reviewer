@@ -7,6 +7,7 @@ const {
   buildObjectiveCoverage,
   validateCurriculum,
 } = await import("../src/content/curriculum.ts")
+const { labWorkspaceContent } = await import("../src/content/lab-workspaces.ts")
 
 const valid = validateCurriculum(curriculum)
 assert.equal(valid.valid, true, valid.errors.join("\n"))
@@ -15,6 +16,12 @@ assert.equal(curriculum.labs.length, EXPECTED_LAB_IDS.length)
 assert.equal(curriculum.domains.reduce((total, domain) => total + domain.weight, 0), 100)
 assert.equal(curriculum.roadmap.weeks.length, 18)
 assert.equal(buildObjectiveCoverage(curriculum).length, 53)
+assert.deepEqual(Object.keys(labWorkspaceContent).sort(), [...EXPECTED_LAB_IDS].sort())
+for (const lab of curriculum.labs) {
+  const workspace = labWorkspaceContent[lab.id]
+  assert.ok(workspace.topology.trim(), `Lab ${lab.id} needs a topology brief`)
+  assert.ok(workspace.tasks.length >= 2 && workspace.tasks.every((task) => task.trim()), `Lab ${lab.id} needs distinct planned outcomes`)
+}
 
 const withChanges = (changes) => ({ ...curriculum, ...changes })
 

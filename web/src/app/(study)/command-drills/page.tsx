@@ -46,18 +46,18 @@ export default async function CommandDrillsPage({ searchParams }: { searchParams
               </CardHeader>
               <CardContent className="flex flex-col gap-4">
                 <p className="text-sm text-muted-foreground">Objectives {drill.objectiveIds.join(", ")} · {drill.durationMinutes}-minute suggested warm-up</p>
-                <Link className={buttonVariants({ className: "min-h-11 w-fit", variant: "outline" })} href={`/command-drills?drill=${encodeURIComponent(drill.id)}`}>Open {drill.title} <ArrowUpRight data-icon="inline-end" /></Link>
+                <Link className={buttonVariants({ className: "min-h-11 w-fit", variant: "outline" })} href={`/command-drills?drill=${encodeURIComponent(drill.id)}`}>Open {drill.title} <ArrowUpRight aria-hidden="true" data-icon="inline-end" /></Link>
               </CardContent>
             </Card>
           ))}
         </section>
       ) : selected && next ? (
         <div className="flex min-w-0 flex-col gap-5">
-          <Link className={buttonVariants({ className: "min-h-11 w-fit", variant: "ghost" })} href="/command-drills"><ArrowLeft data-icon="inline-start" /> All command drills</Link>
+          <Link className={buttonVariants({ className: "min-h-11 w-fit", variant: "ghost" })} href="/command-drills"><ArrowLeft aria-hidden="true" data-icon="inline-start" /> All command drills</Link>
           <CommandDrillPractice key={selected.id} drill={selected} nextId={next.id} labTitle={lab?.title} sources={sources} />
         </div>
       ) : (
-        <Card role="status"><CardHeader><CardTitle>Drill not found</CardTitle><CardDescription className="text-base">That drill ID is not in the current command drill list.</CardDescription></CardHeader><CardContent><Link className={buttonVariants({ className: "min-h-11", variant: "outline" })} href="/command-drills">Browse command drills <ArrowUpRight data-icon="inline-end" /></Link></CardContent></Card>
+        <Card role="status"><CardHeader><CardTitle>Drill not found</CardTitle><CardDescription className="text-base">That drill ID is not in the current command drill list.</CardDescription></CardHeader><CardContent><Link className={buttonVariants({ className: "min-h-11", variant: "outline" })} href="/command-drills">Browse command drills <ArrowUpRight aria-hidden="true" data-icon="inline-end" /></Link></CardContent></Card>
       )}
     </>
   )
