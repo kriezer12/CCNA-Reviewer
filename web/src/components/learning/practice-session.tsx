@@ -103,13 +103,19 @@ export function PracticeSession({
         window.history.back()
       } else window.history.pushState(guard, "", location.href)
     }
+    function onNavigationIntent(event: Event) {
+      if (window.confirm(message)) allowLeave.current = true
+      else event.preventDefault()
+    }
     window.addEventListener("beforeunload", beforeUnload)
     document.addEventListener("click", onLink, true)
     window.addEventListener("popstate", onPop)
+    window.addEventListener("study:before-navigation", onNavigationIntent)
     return () => {
       window.removeEventListener("beforeunload", beforeUnload)
       document.removeEventListener("click", onLink, true)
       window.removeEventListener("popstate", onPop)
+      window.removeEventListener("study:before-navigation", onNavigationIntent)
     }
   }, [dirty])
 

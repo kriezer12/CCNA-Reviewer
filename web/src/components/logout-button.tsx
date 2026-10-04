@@ -12,6 +12,12 @@ export function LogoutButton() {
   const [isPending, setIsPending] = useState(false)
 
   async function logout() {
+    if (
+      !window.dispatchEvent(
+        new Event("study:before-navigation", { cancelable: true }),
+      )
+    )
+      return
     setIsPending(true)
     await createClient().auth.signOut()
     router.replace("/login")
@@ -19,7 +25,13 @@ export function LogoutButton() {
   }
 
   return (
-    <Button aria-label="Sign out" disabled={isPending} onClick={logout} size="icon" variant="ghost">
+    <Button
+      aria-label="Sign out"
+      disabled={isPending}
+      onClick={logout}
+      size="icon"
+      variant="ghost"
+    >
       {isPending ? <LoaderCircle className="animate-spin" /> : <LogOut />}
     </Button>
   )
