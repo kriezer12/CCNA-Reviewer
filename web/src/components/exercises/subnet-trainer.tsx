@@ -65,7 +65,7 @@ export function SubnetTrainer({ item }: { item: SubnetCase }) {
   }
 
   return (
-    <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+    <div className="grid min-w-0 grid-cols-[repeat(auto-fit,minmax(min(100%,24rem),1fr))] gap-6">
       <Card className="min-w-0">
         <CardHeader>
           <div className="flex flex-wrap items-center gap-2">

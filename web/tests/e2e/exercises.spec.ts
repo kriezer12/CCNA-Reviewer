@@ -74,6 +74,18 @@ test("subnet exercises are keyboard usable and fit narrow and text-scaled screen
     expect(overflow, `document overflow at ${width}px`).toBe(false)
   }
   await page.addStyleTag({ content: "html { font-size: 200% !important; }" })
+  const cards = page.locator('[data-slot="card"]')
+  const calculation = await cards.nth(0).boundingBox()
+  const solution = await cards.nth(1).boundingBox()
+  expect(calculation).not.toBeNull()
+  expect(solution).not.toBeNull()
+  expect(solution!.y).toBeGreaterThan(calculation!.y + calculation!.height)
+  for (const button of await page.getByRole("button").all()) {
+    const clipsLabel = await button.evaluate(
+      (element) => element.scrollWidth > element.clientWidth,
+    )
+    expect(clipsLabel, `clipped button: ${await button.textContent()}`).toBe(false)
+  }
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth > window.innerWidth,
