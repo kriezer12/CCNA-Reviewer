@@ -64,6 +64,11 @@ export default async function LearnPage({
             q={q}
             domain={domain}
             category={category}
+            domains={curriculum.domains.map(({ id, title }) => ({ id, title }))}
+            categories={learningCategories.map(({ id, title }) => ({
+              id,
+              title,
+            }))}
           />
         </CardContent>
       </Card>

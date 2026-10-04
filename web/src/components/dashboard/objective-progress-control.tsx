@@ -69,7 +69,7 @@ export function ObjectiveProgressControl({
             <CardDescription className="font-mono text-xs uppercase tracking-[0.15em]">Lesson understanding</CardDescription>
             <CardTitle>Record one objective</CardTitle>
           </div>
-          <Badge variant="outline">{objectives.length} objectives</Badge>
+          <Badge variant="outline">{objectives.length} {objectives.length === 1 ? "objective" : "objectives"}</Badge>
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">

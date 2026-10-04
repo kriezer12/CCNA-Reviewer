@@ -41,6 +41,7 @@ export function DashboardNavigation({ orientation }: { orientation: "horizontal"
             aria-current={isActive ? "page" : undefined}
             className={buttonVariants({
               className: cn(
+                "min-h-11",
                 orientation === "vertical" ? "justify-start gap-3" : "shrink-0 gap-2",
                 !isActive && "text-muted-foreground",
               ),

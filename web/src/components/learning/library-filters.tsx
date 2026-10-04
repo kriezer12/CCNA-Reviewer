@@ -1,72 +1,23 @@
 "use client"
 
 import Link from "next/link"
-import { curriculum } from "@/content/curriculum"
-import { learningCategories } from "@/content/learning/categories"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-
-export function FilterSelect({
-  label,
-  name,
-  value,
-  items,
-  allowAll = true,
-}: {
-  label: string
-  name: string
-  value: string
-  items: readonly { id: string; title: string }[]
-  allowAll?: boolean
-}) {
-  return (
-    <Field>
-      <FieldLabel htmlFor={`filter-${name}`}>{label}</FieldLabel>
-      <Select defaultValue={value || "all"} name={name}>
-        <SelectTrigger className="min-h-11 w-full" id={`filter-${name}`}>
-          <SelectValue>
-            {(selected: string | null) =>
-              items.find((item) => item.id === selected)?.title ??
-              (selected && selected !== "all"
-                ? "Unknown selection — reset filters"
-                : `All ${label.toLowerCase()}`)
-            }
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            {allowAll ? (
-              <SelectItem value="all">All {label.toLowerCase()}</SelectItem>
-            ) : null}
-            {items.map((item) => (
-              <SelectItem key={item.id} value={item.id}>
-                {item.title}
-              </SelectItem>
-            ))}
-          </SelectGroup>
-        </SelectContent>
-      </Select>
-    </Field>
-  )
-}
+import { FilterSelect, type FilterOption } from "./filter-select"
 
 export function LibraryFilters({
   q,
   domain,
   category,
+  domains,
+  categories,
 }: {
   q: string
   domain: string
   category: string
+  domains: readonly FilterOption[]
+  categories: readonly FilterOption[]
 }) {
   return (
     <form action="/learn" method="get" className="flex flex-col gap-4">
@@ -87,13 +38,13 @@ export function LibraryFilters({
           label="Domains"
           name="domain"
           value={domain}
-          items={curriculum.domains}
+          items={domains}
         />
         <FilterSelect
           label="Categories"
           name="category"
           value={category}
-          items={learningCategories}
+          items={categories}
         />
       </FieldGroup>
       <div className="flex flex-wrap gap-3">
