@@ -54,6 +54,10 @@ export function StudyTodayPanel({ recommendation }: { recommendation: StudyToday
       </CardHeader>
       <CardContent className="flex flex-col gap-5">
         <p className="text-base leading-7">{recommendation.reason}</p>
+        <nav aria-label="Learn and practice this objective" className="flex flex-wrap gap-3">
+          <Link className={buttonVariants({ className: "min-h-11", variant: "outline" })} href={`/learn/${isLesson ? recommendation.objective.id : recommendation.lab.objectiveIds[0]}`}>Read the guide</Link>
+          <Link className={buttonVariants({ className: "min-h-11", variant: "outline" })} href={`/practice?objective=${isLesson ? recommendation.objective.id : recommendation.lab.objectiveIds[0]}`}>Practice this objective</Link>
+        </nav>
         <p className="text-sm text-muted-foreground">{isLesson ? `Suggested study block: ${recommendation.suggestedMinutes} minutes` : `Lab duration estimate: ${recommendation.suggestedMinutes} minutes`}. Planning estimate only; no study time is recorded by opening this activity.</p>
         <div className="flex flex-wrap gap-3">
           <Link className={buttonVariants({ className: "min-h-11 max-w-full whitespace-normal text-left", size: "lg" })} href={recommendation.href}>{isLesson ? <BookOpen aria-hidden="true" data-icon="inline-start" /> : <FlaskConical aria-hidden="true" data-icon="inline-start" />}{recommendation.actionLabel}<ArrowUpRight aria-hidden="true" data-icon="inline-end" /></Link>

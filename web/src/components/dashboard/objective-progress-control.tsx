@@ -7,7 +7,7 @@ import { Check, LoaderCircle } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createClient } from "@/lib/supabase/client"
 import type { Objective } from "@/content/curriculum"
 import type { TopicProgressRow } from "@/lib/supabase/progress"
@@ -66,7 +66,7 @@ export function ObjectiveProgressControl({
       <CardHeader>
         <div className="flex items-center justify-between gap-3">
           <div>
-            <CardDescription className="font-mono text-[10px] uppercase tracking-[0.15em]">Lesson understanding</CardDescription>
+            <CardDescription className="font-mono text-xs uppercase tracking-[0.15em]">Lesson understanding</CardDescription>
             <CardTitle>Record one objective</CardTitle>
           </div>
           <Badge variant="outline">{objectives.length} objectives</Badge>
@@ -74,25 +74,26 @@ export function ObjectiveProgressControl({
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <Select value={objectiveId} onValueChange={changeObjective}>
-          <SelectTrigger aria-label="Objective"><SelectValue placeholder="Choose an objective" /></SelectTrigger>
+          <SelectTrigger className="min-h-11 w-full" aria-label="Objective"><SelectValue placeholder="Choose an objective">{selectedObjective ? `${selectedObjective.id} · ${selectedObjective.title}` : "Choose an objective"}</SelectValue></SelectTrigger>
           <SelectContent>
-            {objectives.map((objective) => <SelectItem key={objective.id} value={objective.id}>{objective.id} · {objective.title}</SelectItem>)}
+            <SelectGroup>{objectives.map((objective) => <SelectItem key={objective.id} value={objective.id}>{objective.id} · {objective.title}</SelectItem>)}</SelectGroup>
           </SelectContent>
         </Select>
         <p className="text-sm leading-6 text-muted-foreground">{selectedObjective?.title}</p>
         <Select value={status} onValueChange={(value) => { setStatus((value ?? "not_started") as Status); setState("idle") }}>
-          <SelectTrigger aria-label="Lesson status"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="min-h-11 w-full" aria-label="Lesson status"><SelectValue>{status === "not_started" ? "Not started" : status === "in_progress" ? "In progress" : "Complete"}</SelectValue></SelectTrigger>
           <SelectContent>
-            <SelectItem value="not_started">Not started</SelectItem>
+            <SelectGroup><SelectItem value="not_started">Not started</SelectItem>
             <SelectItem value="in_progress">In progress</SelectItem>
-            <SelectItem value="complete">Complete</SelectItem>
+            <SelectItem value="complete">Complete</SelectItem></SelectGroup>
           </SelectContent>
         </Select>
-        <Button disabled={state === "saving" || !objectiveId} onClick={save}>
+        <Button className="min-h-11" disabled={state === "saving" || !objectiveId} onClick={save}>
           {state === "saving" ? <LoaderCircle className="animate-spin" /> : state === "saved" ? <Check /> : null}
           {state === "saved" ? "Saved" : "Save understanding"}
         </Button>
         {state === "error" ? <p className="text-sm text-destructive" role="alert">Could not save this objective. Check the connection and retry.</p> : null}
+        <p className="sr-only" role="status">{state === "saved" ? "Lesson understanding saved." : state === "saving" ? "Saving lesson understanding." : ""}</p>
       </CardContent>
     </Card>
   )
