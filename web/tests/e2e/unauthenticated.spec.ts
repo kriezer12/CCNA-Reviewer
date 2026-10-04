@@ -10,6 +10,8 @@ test("protected routes redirect unsigned visitors to sign in", async ({
     "/learn/unknown",
     "/practice",
     "/command-drills",
+    "/exercises",
+    "/exercises/subnetting",
   ]) {
     await page.goto(route)
     await expect(page).toHaveURL(/\/login\?error=auth-required$/)

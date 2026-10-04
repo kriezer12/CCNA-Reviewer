@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import {
   BookOpen,
   FlaskConical,
+  Calculator,
   LayoutDashboard,
   ShieldCheck,
   Terminal,
@@ -18,6 +19,7 @@ const navigation = [
   { label: "Roadmap", href: "/roadmap", icon: BookOpen },
   { label: "Learn", href: "/learn", icon: BookOpen },
   { label: "Practice", href: "/practice", icon: ShieldCheck },
+  { label: "Exercises", href: "/exercises", icon: Calculator },
   { label: "Labs", href: "/labs", icon: FlaskConical },
   { label: "Command drills", href: "/command-drills", icon: Terminal },
   { label: "Readiness", href: "/readiness", icon: ShieldCheck },

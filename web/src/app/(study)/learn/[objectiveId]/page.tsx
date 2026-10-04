@@ -149,6 +149,11 @@ export default async function GuidePage({
               Practice objective {objective.id}
             </Link>
             <div className="flex flex-col gap-3">
+              {objective.id === "1.6" ? (
+                <Link className="min-h-11 content-center underline underline-offset-4" href="/exercises/subnetting">
+                  Exercise: IPv4 subnetting
+                </Link>
+              ) : null}
               {drills.map((drill) => (
                 <Link
                   className="min-h-11 content-center underline underline-offset-4"

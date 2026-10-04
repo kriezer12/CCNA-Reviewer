@@ -4,7 +4,7 @@ Canonical specification: [Issue #24](https://github.com/kriezer12/CCNA-Reviewer/
 
 Baseline: b95456dc8262e4bdad723c7024343eb2e3c78bfa. Branch: feat/24-learning-refinement. The original checkout is preserved. The full 18-ticket scope remains active; this is a progress record, not completion evidence.
 
-Proposed code-review fixed point: the baseline above, pending the user's response. Tests use the approved existing browser journeys, pure scheduling/exercise evaluation, registry checks, and real local database authorization boundaries.
+User-confirmed code-review fixed point: b95456dc8262e4bdad723c7024343eb2e3c78bfa. Tests use the approved existing browser journeys, pure scheduling/exercise evaluation, registry checks, and real local database authorization boundaries.
 
 | Draft | Canonical ticket | State |
 | --- | --- | --- |
@@ -12,7 +12,7 @@ Proposed code-review fixed point: the baseline above, pending the user's respons
 | 2 | [#26](https://github.com/kriezer12/CCNA-Reviewer/issues/26) Save missed practice questions to a private review list | Not started |
 | 3 | [#27](https://github.com/kriezer12/CCNA-Reviewer/issues/27) Bookmark guides and practice questions across devices | Not started |
 | 4 | [#28](https://github.com/kriezer12/CCNA-Reviewer/issues/28) Review due questions from the dashboard | Not started |
-| 5 | [#29](https://github.com/kriezer12/CCNA-Reviewer/issues/29) Practice IPv4 subnetting with interactive feedback | Not started |
+| 5 | [#29](https://github.com/kriezer12/CCNA-Reviewer/issues/29) Practice IPv4 subnetting with interactive feedback | Implemented; targeted QA in progress |
 | 6 | [#30](https://github.com/kriezer12/CCNA-Reviewer/issues/30) Guide a daily read-recall-practice-apply-review sequence | Not started |
 | 7 | [#31](https://github.com/kriezer12/CCNA-Reviewer/issues/31) Save and resume unfinished practice | Not started |
 | 8 | [#32](https://github.com/kriezer12/CCNA-Reviewer/issues/32) Keep private notes on learning objectives | Not started |
