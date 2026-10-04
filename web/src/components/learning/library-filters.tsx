@@ -20,22 +20,33 @@ export function FilterSelect({
   name,
   value,
   items,
+  allowAll = true,
 }: {
   label: string
   name: string
   value: string
   items: readonly { id: string; title: string }[]
+  allowAll?: boolean
 }) {
   return (
     <Field>
       <FieldLabel htmlFor={`filter-${name}`}>{label}</FieldLabel>
       <Select defaultValue={value || "all"} name={name}>
         <SelectTrigger className="min-h-11 w-full" id={`filter-${name}`}>
-          <SelectValue />
+          <SelectValue>
+            {(selected: string | null) =>
+              items.find((item) => item.id === selected)?.title ??
+              (selected && selected !== "all"
+                ? "Unknown selection — reset filters"
+                : `All ${label.toLowerCase()}`)
+            }
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
-            <SelectItem value="all">All {label.toLowerCase()}</SelectItem>
+            {allowAll ? (
+              <SelectItem value="all">All {label.toLowerCase()}</SelectItem>
+            ) : null}
             {items.map((item) => (
               <SelectItem key={item.id} value={item.id}>
                 {item.title}

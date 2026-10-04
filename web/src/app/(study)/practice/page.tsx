@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto"
 import { curriculum } from "@/content/curriculum"
 import { learningCategories } from "@/content/learning/categories"
 import { practiceQuestions } from "@/content/practice"
+import { commandDrills } from "@/content/command-drills"
 import { matchingQuestions, selectPracticeSession } from "@/lib/practice-model"
 import { requireOwner } from "@/lib/supabase/auth"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
@@ -118,6 +119,7 @@ export default async function PracticePage({
               />
               <FilterSelect
                 name="mode"
+                allowAll={false}
                 label="Mode"
                 value={mode}
                 items={[
@@ -127,6 +129,7 @@ export default async function PracticePage({
               />
               <FilterSelect
                 name="feedback"
+                allowAll={false}
                 label="Feedback"
                 value={feedback}
                 items={[
@@ -139,6 +142,7 @@ export default async function PracticePage({
               />
               <FilterSelect
                 name="count"
+                allowAll={false}
                 label="Question count"
                 value={String(count)}
                 items={[5, 10, 20].map((id) => ({
@@ -175,6 +179,41 @@ export default async function PracticePage({
         requestedCount={mode === "mixed" ? 20 : count}
         feedback={feedback === "checkpoint" ? "checkpoint" : "guided"}
         newSessionHref={`/practice?${newParams}`}
+        resources={Object.fromEntries(
+          questions.map((question) => [
+            question.id,
+            {
+              links: [
+                ...commandDrills
+                  .filter((drill) =>
+                    drill.objectiveIds.some((id) =>
+                      question.objectiveIds.includes(id),
+                    ),
+                  )
+                  .map((drill) => ({
+                    title: `Drill: ${drill.title}`,
+                    href: `/command-drills?drill=${encodeURIComponent(drill.id)}`,
+                  })),
+                ...curriculum.labs
+                  .filter((lab) =>
+                    lab.objectiveIds.some((id) =>
+                      question.objectiveIds.includes(id),
+                    ),
+                  )
+                  .map((lab) => ({
+                    title: `Lab ${lab.id}: ${lab.title}`,
+                    href: `/labs/${lab.id}`,
+                  })),
+              ],
+              sources: question.sourceLocators.map((source) => ({
+                title:
+                  curriculum.sources.find((item) => item.id === source.sourceId)
+                    ?.title ?? source.sourceId,
+                locator: source.locator,
+              })),
+            },
+          ]),
+        )}
       />
     </>
   )

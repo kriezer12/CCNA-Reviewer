@@ -22,6 +22,10 @@ const reportRoutes = [
   { name: "lab-workspace", path: "/labs/L01", authenticated: true },
   { name: "command-drill", path: "/command-drills?drill=interfaces", authenticated: true },
   { name: "readiness", path: "/readiness", authenticated: true },
+  { name: "learning-library", path: "/learn", authenticated: true },
+  { name: "learning-guide", path: "/learn/1.9", authenticated: true },
+  { name: "practice", path: "/practice?mode=mixed&seed=performance", authenticated: true },
+  { name: "drill-library", path: "/command-drills", authenticated: true },
 ]
 
 await mkdir(reportDirectory, { recursive: true })

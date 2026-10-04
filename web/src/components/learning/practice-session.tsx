@@ -15,16 +15,23 @@ import { Field, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field"
 import { Progress } from "@/components/ui/progress"
 import type { PracticeQuestion } from "@/content/practice/types"
 
+export interface PracticeResources {
+  readonly links: readonly { title: string; href: string }[]
+  readonly sources: readonly { title: string; locator: string }[]
+}
+
 export function PracticeSession({
   initialQuestions,
   feedback,
   newSessionHref,
   requestedCount,
+  resources,
 }: {
   initialQuestions: readonly PracticeQuestion[]
   feedback: "guided" | "checkpoint"
   newSessionHref: string
   requestedCount: number
+  resources: Readonly<Record<string, PracticeResources>>
 }) {
   const [questions, setQuestions] = useState(initialQuestions)
   const [answers, setAnswers] = useState<Record<string, string>>({})
@@ -241,7 +248,11 @@ export function PracticeSession({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <AnswerFeedback question={item} selected={answers[item.id]} />
+              <AnswerFeedback
+                question={item}
+                selected={answers[item.id]}
+                resources={resources[item.id]}
+              />
             </CardContent>
           </Card>
         ))}
@@ -313,6 +324,7 @@ export function PracticeSession({
             <AnswerFeedback
               question={question}
               selected={answers[question.id]}
+              resources={resources[question.id]}
             />
           </div>
         ) : null}
@@ -370,9 +382,11 @@ export function PracticeSession({
 function AnswerFeedback({
   question,
   selected,
+  resources,
 }: {
   question: PracticeQuestion
   selected?: string
+  resources?: PracticeResources
 }) {
   return (
     <div className="flex flex-col gap-4">
@@ -412,7 +426,31 @@ function AnswerFeedback({
             Review guide {id}
           </Link>
         ))}
+        {resources?.links.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className={buttonVariants({
+              variant: "outline",
+              className: "min-h-11 whitespace-normal",
+            })}
+          >
+            {link.title}
+          </Link>
+        ))}
       </div>
+      {resources?.sources.length ? (
+        <div className="text-sm leading-6 text-muted-foreground">
+          <strong>Study references</strong>
+          <ul className="list-disc pl-5">
+            {resources.sources.map((source) => (
+              <li key={`${source.title}-${source.locator}`}>
+                {source.title} · {source.locator}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
     </div>
   )
 }

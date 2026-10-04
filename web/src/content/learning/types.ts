@@ -3,6 +3,7 @@ import {
   type ObjectiveId,
   type SourceLocator,
 } from "../curriculum.ts"
+import { learningSources } from "./sources.ts"
 
 export interface LearningSection {
   readonly title: string
@@ -45,6 +46,6 @@ export function guide(
     example: { title: example[0], body: example[1] },
     mistakes,
     recall: recall.map(([prompt, answer]) => ({ prompt, answer })),
-    sourceLocators: sourceLocators ?? objective.sourceLocators,
+    sourceLocators: sourceLocators ?? learningSources(objectiveId),
   }
 }

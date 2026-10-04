@@ -3,6 +3,7 @@ import {
   type ObjectiveId,
   type SourceLocator,
 } from "../curriculum.ts"
+import { learningSources } from "../learning/sources.ts"
 
 export type Difficulty = "foundation" | "applied" | "challenge"
 export type QuestionFormat = "concept" | "scenario" | "calculation" | "output"
@@ -59,6 +60,6 @@ export function question(
     explanation,
     difficulty,
     format,
-    sourceLocators: objective.sourceLocators,
+    sourceLocators: learningSources(objectiveId),
   }
 }

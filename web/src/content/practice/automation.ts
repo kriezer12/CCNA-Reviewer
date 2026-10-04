@@ -2,6 +2,49 @@ import { question as q } from "./types.ts"
 
 export const automationQuestions = [
   q(
+    "automation-29",
+    "6.1",
+    "A deployment tool supports a small pilot group before a fleet-wide change. Why use that stage?",
+    [
+      [
+        "To detect incorrect assumptions before expanding their impact",
+        "A pilot tests the change with a limited scope.",
+      ],
+      [
+        "To guarantee every untested device behaves identically",
+        "A pilot provides evidence, not a universal guarantee.",
+      ],
+      ["To eliminate rollback planning", "Recovery remains necessary."],
+      [
+        "To bypass input validation",
+        "A small scope does not make invalid inputs correct.",
+      ],
+    ],
+    "Combine scoped rollout, verification gates, and recovery planning with repeatable execution.",
+    "applied",
+    "scenario",
+  ),
+  q(
+    "automation-30",
+    "6.7",
+    'A response contains {"enabled":false,"description":null}. Which interpretation is correct?',
+    [
+      [
+        "enabled is a boolean; description is null",
+        "false and null are distinct JSON values.",
+      ],
+      ["Both values are strings", "Neither value is quoted."],
+      [
+        "false means the key is absent",
+        "The enabled key is present with a boolean value.",
+      ],
+      ["null is an empty array", "An empty array would be []."],
+    ],
+    "Distinguish a missing property from present false, null, empty string, and empty array values.",
+    "applied",
+    "output",
+  ),
+  q(
     "automation-01",
     "6.1",
     "A script applies the same incorrect VLAN assignment to 80 switches. Which automation risk does this demonstrate?",
