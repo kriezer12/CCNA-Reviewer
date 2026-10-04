@@ -197,7 +197,9 @@ export function CommandDrillPractice({
                 })}
                 href={`/labs/${drill.labId}`}
               >
-                Open {drill.labId}: {labTitle}{" "}
+                <span className="min-w-0 flex-1 break-words">
+                  Open {drill.labId}: {labTitle}
+                </span>{" "}
                 <ArrowUpRight aria-hidden="true" data-icon="inline-end" />
               </Link>
             ) : null}

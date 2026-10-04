@@ -166,6 +166,13 @@ test("narrow guide and practice content stays within the viewport", async ({
       ),
       `${route} at 200% text size`,
     ).toBe(false)
+    await expect(page.locator("h1")).toBeVisible()
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth > window.innerWidth,
+      ),
+      `${route} loaded at 200% text size`,
+    ).toBe(false)
   }
 })
 
@@ -173,6 +180,12 @@ test("filters are keyboard usable and invalid or empty selections recover", asyn
   page,
 }) => {
   await page.goto("/learn")
+  await page.keyboard.press("Tab")
+  await expect(
+    page.getByRole("link", { name: "Skip to study content", exact: true }),
+  ).toBeFocused()
+  await page.keyboard.press("Enter")
+  await expect(page.locator("#study-content")).toBeFocused()
   const domains = page.getByRole("combobox", { name: "Domains" })
   await domains.focus()
   await page.keyboard.press("Enter")
