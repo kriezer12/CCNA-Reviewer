@@ -474,8 +474,10 @@ test("readiness checkpoint launches in a centered dialog and saves a step-by-ste
   await expect
     .poll(
       async () =>
-        Math.abs((await domainPopup.boundingBox())?.width ?? 0) -
-        (triggerBox?.width ?? 0),
+        Math.abs(
+          ((await domainPopup.boundingBox())?.width ?? 0) -
+            (triggerBox?.width ?? 0),
+        ),
     )
     .toBeLessThan(2);
   const popupBox = await domainPopup.boundingBox();
