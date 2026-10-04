@@ -114,13 +114,12 @@ export function CommandDrillPractice({
               aria-labelledby="answer-heading"
               className="flex min-w-0 flex-col gap-4 border-t border-border pt-5"
             >
-              <h3
-                className="text-xl font-semibold"
-                id="answer-heading"
-                role="status"
-              >
-                Answer and evidence revealed
+              <h3 className="text-xl font-semibold" id="answer-heading">
+                Answer and evidence
               </h3>
+              <p role="status" className="sr-only">
+                Answer and evidence revealed.
+              </p>
               <div className="flex min-w-0 flex-col gap-2">
                 <span className="text-sm font-medium">Canonical command</span>
                 <div className="max-w-full overflow-x-auto rounded-lg bg-muted p-4">

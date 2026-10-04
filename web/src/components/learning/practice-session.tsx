@@ -196,7 +196,7 @@ export function PracticeSession({
           <CardHeader>
             <h2
               id="practice-result"
-              className="text-2xl font-semibold outline-none"
+              className="text-2xl font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring"
               ref={heading}
               tabIndex={-1}
             >
@@ -279,7 +279,7 @@ export function PracticeSession({
         <h2
           ref={heading}
           tabIndex={-1}
-          className="whitespace-pre-wrap text-xl font-semibold leading-8 outline-none"
+          className="whitespace-pre-wrap text-xl font-semibold leading-8 outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           {question.prompt}
         </h2>
@@ -295,26 +295,28 @@ export function PracticeSession({
             <Field
               key={choice.id}
               orientation="horizontal"
-              className="min-h-11 rounded-lg border border-border p-3"
+              className="min-h-11 rounded-lg border border-border"
             >
-              <input
-                className="size-4 shrink-0 accent-primary focus-visible:outline-2 focus-visible:outline-ring"
-                id={`${question.id}-${choice.id}`}
-                type="radio"
-                name={question.id}
-                checked={answers[question.id] === choice.id}
-                onChange={() =>
-                  setAnswers((current) => ({
-                    ...current,
-                    [question.id]: choice.id,
-                  }))
-                }
-              />
               <FieldLabel
-                className="min-h-11 flex-1 whitespace-pre-wrap break-words"
+                className="min-h-11 w-full flex-1 items-center whitespace-pre-wrap break-words p-3"
                 htmlFor={`${question.id}-${choice.id}`}
               >
-                {choice.id}. {choice.text}
+                <input
+                  className="size-4 shrink-0 accent-primary focus-visible:outline-2 focus-visible:outline-ring"
+                  id={`${question.id}-${choice.id}`}
+                  type="radio"
+                  name={question.id}
+                  checked={answers[question.id] === choice.id}
+                  onChange={() =>
+                    setAnswers((current) => ({
+                      ...current,
+                      [question.id]: choice.id,
+                    }))
+                  }
+                />
+                <span className="min-w-0">
+                  {choice.id}. {choice.text}
+                </span>
               </FieldLabel>
             </Field>
           ))}

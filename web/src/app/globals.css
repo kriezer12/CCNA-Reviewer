@@ -106,9 +106,36 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  button,
+  a,
+  input,
+  [data-slot="select-trigger"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: color-mix(
+      in oklch,
+      var(--foreground) 15%,
+      transparent
+    );
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 .halftone {
-  background-image: radial-gradient(circle at 1px 1px, color-mix(in oklch, var(--foreground) 12%, transparent) 1px, transparent 1px);
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    color-mix(in oklch, var(--foreground) 12%, transparent) 1px,
+    transparent 1px
+  );
   background-size: 8px 8px;
 }

@@ -135,7 +135,7 @@ test("guided practice hides answers, locks checked choices, and protects tempora
 test("narrow guide and practice content stays within the viewport", async ({
   page,
 }) => {
-  for (const width of [360, 390, 1280]) {
+  for (const width of [360, 390, 640, 1280]) {
     await page.setViewportSize({ width, height: 900 })
     for (const route of ["/learn", "/learn/1.9", "/practice?objective=1.6"]) {
       await page.goto(route)
@@ -152,6 +152,21 @@ test("narrow guide and practice content stays within the viewport", async ({
     path: ".playwright/learning-guide.png",
     fullPage: true,
   })
+  for (const route of [
+    "/learn",
+    "/learn/1.9",
+    "/practice?objective=1.6",
+    "/command-drills?drill=nat",
+  ]) {
+    await page.goto(route)
+    await page.addStyleTag({ content: "html { font-size: 200% !important; }" })
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth > window.innerWidth,
+      ),
+      `${route} at 200% text size`,
+    ).toBe(false)
+  }
 })
 
 test("filters are keyboard usable and invalid or empty selections recover", async ({

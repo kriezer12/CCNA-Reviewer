@@ -1,0 +1,1367 @@
+{
+  "questionCount": 315,
+  "guideCount": 53,
+  "drillCount": 24,
+  "formats": {
+    "concept": 14,
+    "scenario": 236,
+    "calculation": 37,
+    "output": 28
+  },
+  "objectives": [
+    {
+      "id": "1.1",
+      "title": "Explain the role and function of network components",
+      "questions": 8,
+      "children": [
+        {
+          "id": "1.1.a",
+          "title": "Routers",
+          "questionIds": [
+            "fund-01"
+          ]
+        },
+        {
+          "id": "1.1.b",
+          "title": "Layer 2 and Layer 3 switches",
+          "questionIds": [
+            "fund-01",
+            "fund-02"
+          ]
+        },
+        {
+          "id": "1.1.c",
+          "title": "Next-generation firewalls and IPS",
+          "questionIds": [
+            "fund-03"
+          ]
+        },
+        {
+          "id": "1.1.d",
+          "title": "Access points",
+          "questionIds": [
+            "fund-04"
+          ]
+        },
+        {
+          "id": "1.1.e",
+          "title": "Controllers",
+          "questionIds": [
+            "fund-05"
+          ]
+        },
+        {
+          "id": "1.1.f",
+          "title": "Endpoints",
+          "questionIds": [
+            "fund-06"
+          ]
+        },
+        {
+          "id": "1.1.g",
+          "title": "Servers",
+          "questionIds": [
+            "fund-07"
+          ]
+        },
+        {
+          "id": "1.1.h",
+          "title": "PoE",
+          "questionIds": [
+            "fund-08"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 1"
+        },
+        {
+          "sourceId": "v1-ocg",
+          "locator": "V1 Appendix B, PDF p. 2068"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapters 1, 10, 18, 21-22"
+        }
+      ]
+    },
+    {
+      "id": "1.2",
+      "title": "Describe characteristics of network topology architectures",
+      "questions": 6,
+      "children": [
+        {
+          "id": "1.2.a",
+          "title": "Two-tier",
+          "questionIds": [
+            "fund-09"
+          ]
+        },
+        {
+          "id": "1.2.b",
+          "title": "Three-tier",
+          "questionIds": [
+            "fund-10"
+          ]
+        },
+        {
+          "id": "1.2.c",
+          "title": "Spine-leaf",
+          "questionIds": [
+            "fund-11"
+          ]
+        },
+        {
+          "id": "1.2.d",
+          "title": "WAN",
+          "questionIds": [
+            "fund-12"
+          ]
+        },
+        {
+          "id": "1.2.e",
+          "title": "SOHO",
+          "questionIds": [
+            "fund-13"
+          ]
+        },
+        {
+          "id": "1.2.f",
+          "title": "On-premises and cloud",
+          "questionIds": [
+            "fund-14"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 1"
+        },
+        {
+          "sourceId": "v1-ocg",
+          "locator": "V1 Appendix B, PDF pp. 2069-2070"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapters 18-21"
+        }
+      ]
+    },
+    {
+      "id": "1.3",
+      "title": "Compare physical interface and cabling types",
+      "questions": 4,
+      "children": [
+        {
+          "id": "1.3.a",
+          "title": "Single-mode fiber, multimode fiber, copper",
+          "questionIds": [
+            "fund-15",
+            "fund-16"
+          ]
+        },
+        {
+          "id": "1.3.b",
+          "title": "Ethernet shared media and point-to-point connections",
+          "questionIds": [
+            "fund-17",
+            "fund-18"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 1"
+        },
+        {
+          "sourceId": "v1-ocg",
+          "locator": "V1 Chapters 1-2, 7"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 18"
+        }
+      ]
+    },
+    {
+      "id": "1.4",
+      "title": "Identify interface and cable issues",
+      "questions": 4,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 1"
+        },
+        {
+          "sourceId": "v1-ocg",
+          "locator": "V1 Chapter 7"
+        }
+      ]
+    },
+    {
+      "id": "1.5",
+      "title": "Compare TCP to UDP",
+      "questions": 4,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 1"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 5"
+        }
+      ]
+    },
+    {
+      "id": "1.6",
+      "title": "Configure and verify IPv4 addressing and subnetting",
+      "questions": 24,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 1"
+        },
+        {
+          "sourceId": "v1-ocg",
+          "locator": "V1 Chapters 6, 11-18; V1 Appendix B, PDF p. 2071"
+        }
+      ]
+    },
+    {
+      "id": "1.7",
+      "title": "Describe private IPv4 addressing",
+      "questions": 4,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF pp. 1-2"
+        },
+        {
+          "sourceId": "v1-ocg",
+          "locator": "V1 Chapters 11-12, 17"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 14"
+        }
+      ]
+    },
+    {
+      "id": "1.8",
+      "title": "Configure and verify IPv6 addressing and prefix",
+      "questions": 5,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 2"
+        },
+        {
+          "sourceId": "v1-ocg",
+          "locator": "V1 Chapters 25-28"
+        }
+      ]
+    },
+    {
+      "id": "1.9",
+      "title": "Describe IPv6 address types",
+      "questions": 6,
+      "children": [
+        {
+          "id": "1.9.a",
+          "title": "Unicast: global, unique local, and link local",
+          "questionIds": [
+            "fund-31",
+            "fund-32"
+          ]
+        },
+        {
+          "id": "1.9.b",
+          "title": "Anycast",
+          "questionIds": [
+            "fund-33"
+          ]
+        },
+        {
+          "id": "1.9.c",
+          "title": "Multicast",
+          "questionIds": [
+            "fund-34"
+          ]
+        },
+        {
+          "id": "1.9.d",
+          "title": "Modified EUI-64",
+          "questionIds": [
+            "ipv6-eui64-flip",
+            "fund-35"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 2"
+        },
+        {
+          "sourceId": "v1-ocg",
+          "locator": "V1 Chapters 25-28"
+        }
+      ]
+    },
+    {
+      "id": "1.10",
+      "title": "Verify IP parameters for Windows, macOS, and Linux clients",
+      "questions": 4,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 2"
+        },
+        {
+          "sourceId": "v1-ocg",
+          "locator": "V1 Chapter 19"
+        }
+      ]
+    },
+    {
+      "id": "1.11",
+      "title": "Describe wireless principles",
+      "questions": 4,
+      "children": [
+        {
+          "id": "1.11.a",
+          "title": "Non-overlapping Wi-Fi channels",
+          "questionIds": [
+            "fund-40"
+          ]
+        },
+        {
+          "id": "1.11.b",
+          "title": "SSID",
+          "questionIds": [
+            "fund-41",
+            "fund-42"
+          ]
+        },
+        {
+          "id": "1.11.c",
+          "title": "RF",
+          "questionIds": [
+            "fund-40"
+          ]
+        },
+        {
+          "id": "1.11.d",
+          "title": "Encryption",
+          "questionIds": [
+            "fund-42",
+            "fund-43"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 2"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapters 1 and 3"
+        }
+      ]
+    },
+    {
+      "id": "1.12",
+      "title": "Explain virtualization fundamentals",
+      "questions": 4,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 2"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 20"
+        }
+      ]
+    },
+    {
+      "id": "1.13",
+      "title": "Describe switching concepts",
+      "questions": 4,
+      "children": [
+        {
+          "id": "1.13.a",
+          "title": "MAC learning and aging",
+          "questionIds": [
+            "fund-48",
+            "fund-51"
+          ]
+        },
+        {
+          "id": "1.13.b",
+          "title": "Frame switching",
+          "questionIds": [
+            "fund-49"
+          ]
+        },
+        {
+          "id": "1.13.c",
+          "title": "Frame flooding",
+          "questionIds": [
+            "fund-50"
+          ]
+        },
+        {
+          "id": "1.13.d",
+          "title": "MAC address table",
+          "questionIds": [
+            "fund-48",
+            "fund-51"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 2"
+        },
+        {
+          "sourceId": "v1-ocg",
+          "locator": "V1 Chapters 5 and 8"
+        }
+      ]
+    },
+    {
+      "id": "2.1",
+      "title": "Configure and verify normal-range VLANs across multiple switches",
+      "questions": 7,
+      "children": [
+        {
+          "id": "2.1.a",
+          "title": "Access ports for data and voice",
+          "questionIds": [
+            "access-01",
+            "access-02"
+          ]
+        },
+        {
+          "id": "2.1.b",
+          "title": "Default VLAN",
+          "questionIds": [
+            "access-03"
+          ]
+        },
+        {
+          "id": "2.1.c",
+          "title": "Inter-VLAN connectivity",
+          "questionIds": [
+            "access-04",
+            "access-07"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 2"
+        },
+        {
+          "sourceId": "v1-ocg",
+          "locator": "V1 Chapters 8 and 18"
+        }
+      ]
+    },
+    {
+      "id": "2.2",
+      "title": "Configure and verify interswitch connectivity",
+      "questions": 7,
+      "children": [
+        {
+          "id": "2.2.a",
+          "title": "Trunk ports",
+          "questionIds": [
+            "access-08"
+          ]
+        },
+        {
+          "id": "2.2.b",
+          "title": "802.1Q",
+          "questionIds": [
+            "access-08",
+            "access-09"
+          ]
+        },
+        {
+          "id": "2.2.c",
+          "title": "Native VLAN",
+          "questionIds": [
+            "access-10",
+            "access-12"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 2"
+        },
+        {
+          "sourceId": "v1-ocg",
+          "locator": "V1 Chapter 8"
+        }
+      ]
+    },
+    {
+      "id": "2.3",
+      "title": "Configure and verify Layer 2 discovery protocols",
+      "questions": 7,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 2"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 13"
+        }
+      ]
+    },
+    {
+      "id": "2.4",
+      "title": "Configure and verify Layer 2 and Layer 3 EtherChannel using LACP",
+      "questions": 7,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 2"
+        },
+        {
+          "sourceId": "v1-ocg",
+          "locator": "V1 Chapters 8-10 and 18"
+        }
+      ]
+    },
+    {
+      "id": "2.5",
+      "title": "Interpret basic Rapid PVST+ operations",
+      "questions": 7,
+      "children": [
+        {
+          "id": "2.5.a",
+          "title": "Root port, root bridge, and other port names",
+          "questionIds": [
+            "access-29",
+            "access-30"
+          ]
+        },
+        {
+          "id": "2.5.b",
+          "title": "Port states and roles",
+          "questionIds": [
+            "access-30",
+            "access-31"
+          ]
+        },
+        {
+          "id": "2.5.c",
+          "title": "PortFast",
+          "questionIds": [
+            "access-32"
+          ]
+        },
+        {
+          "id": "2.5.d",
+          "title": "Root guard, loop guard, BPDU filter, and BPDU guard",
+          "questionIds": [
+            "access-33",
+            "access-34",
+            "access-35"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF pp. 2-3"
+        },
+        {
+          "sourceId": "v1-ocg",
+          "locator": "V1 Chapters 5, 9-10; STP guard/filter sections, PDF pp. 747-764"
+        }
+      ]
+    },
+    {
+      "id": "2.6",
+      "title": "Describe Cisco wireless architectures and AP modes",
+      "questions": 7,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 3"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 2"
+        }
+      ]
+    },
+    {
+      "id": "2.7",
+      "title": "Describe physical infrastructure connections of WLAN components",
+      "questions": 7,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 3"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 4"
+        }
+      ]
+    },
+    {
+      "id": "2.8",
+      "title": "Describe network device management access",
+      "questions": 7,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 3"
+        },
+        {
+          "sourceId": "v1-ocg",
+          "locator": "V1 Chapters 4 and 6"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapters 4 and 20"
+        }
+      ]
+    },
+    {
+      "id": "2.9",
+      "title": "Interpret wireless LAN GUI configuration for client connectivity",
+      "questions": 7,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 3"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 4"
+        }
+      ]
+    },
+    {
+      "id": "3.1",
+      "title": "Interpret the components of a routing table",
+      "questions": 12,
+      "children": [
+        {
+          "id": "3.1.a",
+          "title": "Routing protocol code",
+          "questionIds": [
+            "route-01",
+            "route-08"
+          ]
+        },
+        {
+          "id": "3.1.b",
+          "title": "Prefix",
+          "questionIds": [
+            "route-02",
+            "route-08",
+            "route-11"
+          ]
+        },
+        {
+          "id": "3.1.c",
+          "title": "Network mask",
+          "questionIds": [
+            "route-03"
+          ]
+        },
+        {
+          "id": "3.1.d",
+          "title": "Next hop",
+          "questionIds": [
+            "route-04",
+            "route-09",
+            "route-10"
+          ]
+        },
+        {
+          "id": "3.1.e",
+          "title": "Administrative distance",
+          "questionIds": [
+            "route-05"
+          ]
+        },
+        {
+          "id": "3.1.f",
+          "title": "Metric",
+          "questionIds": [
+            "route-06",
+            "route-09"
+          ]
+        },
+        {
+          "id": "3.1.g",
+          "title": "Gateway of last resort",
+          "questionIds": [
+            "route-07",
+            "route-11",
+            "route-12"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 3"
+        },
+        {
+          "sourceId": "v1-ocg",
+          "locator": "V1 Chapters 17 and 29"
+        }
+      ]
+    },
+    {
+      "id": "3.2",
+      "title": "Determine how a router makes a forwarding decision by default",
+      "questions": 12,
+      "children": [
+        {
+          "id": "3.2.a",
+          "title": "Longest-prefix match",
+          "questionIds": [
+            "route-13",
+            "route-14",
+            "route-17",
+            "route-18",
+            "route-22",
+            "route-23",
+            "route-24"
+          ]
+        },
+        {
+          "id": "3.2.b",
+          "title": "Administrative distance",
+          "questionIds": [
+            "route-14",
+            "route-15",
+            "route-19",
+            "route-21"
+          ]
+        },
+        {
+          "id": "3.2.c",
+          "title": "Routing-protocol metric",
+          "questionIds": [
+            "route-16",
+            "route-20"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 3"
+        },
+        {
+          "sourceId": "v1-ocg",
+          "locator": "V1 Chapters 17 and 21-24"
+        }
+      ]
+    },
+    {
+      "id": "3.3",
+      "title": "Configure and verify IPv4 and IPv6 static routing",
+      "questions": 12,
+      "children": [
+        {
+          "id": "3.3.a",
+          "title": "Default route",
+          "questionIds": [
+            "route-25",
+            "route-29",
+            "route-35"
+          ]
+        },
+        {
+          "id": "3.3.b",
+          "title": "Network route",
+          "questionIds": [
+            "route-26",
+            "route-30",
+            "route-31",
+            "route-34",
+            "route-35"
+          ]
+        },
+        {
+          "id": "3.3.c",
+          "title": "Host route",
+          "questionIds": [
+            "route-27",
+            "route-32"
+          ]
+        },
+        {
+          "id": "3.3.d",
+          "title": "Floating static route",
+          "questionIds": [
+            "route-28",
+            "route-33",
+            "route-36"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 3"
+        },
+        {
+          "sourceId": "v1-ocg",
+          "locator": "V1 Chapters 17, 20, and 29"
+        }
+      ]
+    },
+    {
+      "id": "3.4",
+      "title": "Configure and verify single-area OSPFv2",
+      "questions": 12,
+      "children": [
+        {
+          "id": "3.4.a",
+          "title": "Neighbor adjacencies",
+          "questionIds": [
+            "route-37",
+            "route-38",
+            "route-39",
+            "route-44",
+            "route-47",
+            "route-48"
+          ]
+        },
+        {
+          "id": "3.4.b",
+          "title": "Point-to-point",
+          "questionIds": [
+            "route-40"
+          ]
+        },
+        {
+          "id": "3.4.c",
+          "title": "Broadcast DR/BDR selection",
+          "questionIds": [
+            "route-41",
+            "route-42",
+            "route-43",
+            "route-44"
+          ]
+        },
+        {
+          "id": "3.4.d",
+          "title": "Router ID",
+          "questionIds": [
+            "route-45",
+            "route-46"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 3"
+        },
+        {
+          "sourceId": "v1-ocg",
+          "locator": "V1 Chapters 21-24"
+        }
+      ]
+    },
+    {
+      "id": "3.5",
+      "title": "Describe the purpose, functions, and concepts of first-hop redundancy protocols",
+      "questions": 12,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 3"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 16"
+        }
+      ]
+    },
+    {
+      "id": "4.1",
+      "title": "Configure and verify inside-source NAT using static mappings and pools",
+      "questions": 4,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 3"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 14"
+        }
+      ]
+    },
+    {
+      "id": "4.2",
+      "title": "Configure and verify NTP in client and server modes",
+      "questions": 4,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 3"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 13"
+        }
+      ]
+    },
+    {
+      "id": "4.3",
+      "title": "Explain the role of DHCP and DNS within the network",
+      "questions": 4,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF pp. 3-4"
+        },
+        {
+          "sourceId": "v1-ocg",
+          "locator": "V1 Chapter 19"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 5"
+        }
+      ]
+    },
+    {
+      "id": "4.4",
+      "title": "Explain the function of SNMP in network operations",
+      "questions": 4,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 4"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 17"
+        }
+      ]
+    },
+    {
+      "id": "4.5",
+      "title": "Describe syslog features, facilities, and severity levels",
+      "questions": 4,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 4"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 13"
+        }
+      ]
+    },
+    {
+      "id": "4.6",
+      "title": "Configure and verify DHCP client and relay",
+      "questions": 4,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 4"
+        },
+        {
+          "sourceId": "v1-ocg",
+          "locator": "V1 Chapters 6 and 19"
+        }
+      ]
+    },
+    {
+      "id": "4.7",
+      "title": "Explain QoS per-hop behavior",
+      "questions": 4,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 4"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 15"
+        }
+      ]
+    },
+    {
+      "id": "4.8",
+      "title": "Configure network devices for remote access using SSH",
+      "questions": 4,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 4"
+        },
+        {
+          "sourceId": "v1-ocg",
+          "locator": "V1 Chapter 6"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 10"
+        }
+      ]
+    },
+    {
+      "id": "4.9",
+      "title": "Describe the capabilities and functions of TFTP and FTP",
+      "questions": 4,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 4"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 17"
+        }
+      ]
+    },
+    {
+      "id": "5.1",
+      "title": "Define key security concepts",
+      "questions": 4,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 4"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 9"
+        }
+      ]
+    },
+    {
+      "id": "5.2",
+      "title": "Describe security program elements",
+      "questions": 4,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 4"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 9"
+        }
+      ]
+    },
+    {
+      "id": "5.3",
+      "title": "Configure and verify device access control using local passwords",
+      "questions": 4,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 4"
+        },
+        {
+          "sourceId": "v1-ocg",
+          "locator": "V1 Chapter 6"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 10"
+        }
+      ]
+    },
+    {
+      "id": "5.4",
+      "title": "Describe security password policy elements and alternatives",
+      "questions": 4,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 4"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 9"
+        }
+      ]
+    },
+    {
+      "id": "5.5",
+      "title": "Describe IPsec remote-access and site-to-site VPNs",
+      "questions": 4,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 4"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 19"
+        }
+      ]
+    },
+    {
+      "id": "5.6",
+      "title": "Configure and verify access control lists",
+      "questions": 7,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 4"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapters 6-8"
+        }
+      ]
+    },
+    {
+      "id": "5.7",
+      "title": "Configure and verify Layer 2 security features",
+      "questions": 6,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 4"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapters 11-12"
+        }
+      ]
+    },
+    {
+      "id": "5.8",
+      "title": "Compare authentication, authorization, and accounting",
+      "questions": 4,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 4"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 9"
+        }
+      ]
+    },
+    {
+      "id": "5.9",
+      "title": "Describe WPA, WPA2, and WPA3 wireless security protocols",
+      "questions": 4,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 4"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 3"
+        }
+      ]
+    },
+    {
+      "id": "5.10",
+      "title": "Configure and verify a WLAN in the GUI using WPA2 PSK",
+      "questions": 4,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 4"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 4"
+        }
+      ]
+    },
+    {
+      "id": "6.1",
+      "title": "Explain how automation impacts network management",
+      "questions": 5,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 4"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapters 21-22"
+        }
+      ]
+    },
+    {
+      "id": "6.2",
+      "title": "Compare traditional networks with controller-based networking",
+      "questions": 4,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 4"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapters 21-22"
+        }
+      ]
+    },
+    {
+      "id": "6.3",
+      "title": "Describe controller-based software-defined architecture",
+      "questions": 4,
+      "children": [
+        {
+          "id": "6.3.a",
+          "title": "Separation of control plane and data plane",
+          "questionIds": [
+            "automation-10"
+          ]
+        },
+        {
+          "id": "6.3.b",
+          "title": "Northbound and southbound APIs",
+          "questionIds": [
+            "automation-11",
+            "automation-12"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 4"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapters 21-22"
+        }
+      ]
+    },
+    {
+      "id": "6.4",
+      "title": "Explain generative AI, predictive AI, and machine learning in network operations",
+      "questions": 4,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 4"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 22, AI/ML section, PDF pp. 1589-1608"
+        }
+      ]
+    },
+    {
+      "id": "6.5",
+      "title": "Describe characteristics of REST-based APIs",
+      "questions": 4,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 4"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 23"
+        }
+      ]
+    },
+    {
+      "id": "6.6",
+      "title": "Recognize the capabilities of Ansible and Terraform",
+      "questions": 4,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 4"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 24"
+        }
+      ]
+    },
+    {
+      "id": "6.7",
+      "title": "Recognize components of JSON-encoded data",
+      "questions": 5,
+      "children": [],
+      "sources": [
+        {
+          "sourceId": "cisco-blueprint",
+          "locator": "PDF p. 4"
+        },
+        {
+          "sourceId": "v2-ocg",
+          "locator": "V2 Chapter 23"
+        }
+      ]
+    }
+  ]
+}
