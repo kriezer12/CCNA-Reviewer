@@ -13,7 +13,7 @@ User-confirmed code-review fixed point: b95456dc8262e4bdad723c7024343eb2e3c78bfa
 | 3 | [#27](https://github.com/kriezer12/CCNA-Reviewer/issues/27) Bookmark guides and practice questions across devices | Implemented; targeted QA passes |
 | 4 | [#28](https://github.com/kriezer12/CCNA-Reviewer/issues/28) Review due questions from the dashboard | Implemented; targeted QA passes |
 | 5 | [#29](https://github.com/kriezer12/CCNA-Reviewer/issues/29) Practice IPv4 subnetting with interactive feedback | Implemented; targeted QA passes (including 200% text reflow) |
-| 6 | [#30](https://github.com/kriezer12/CCNA-Reviewer/issues/30) Guide a daily read-recall-practice-apply-review sequence | Not started |
+| 6 | [#30](https://github.com/kriezer12/CCNA-Reviewer/issues/30) Guide a daily read-recall-practice-apply-review sequence | Implemented; targeted sequence and model QA passes |
 | 7 | [#31](https://github.com/kriezer12/CCNA-Reviewer/issues/31) Save and resume unfinished practice | Not started |
 | 8 | [#32](https://github.com/kriezer12/CCNA-Reviewer/issues/32) Keep private notes on learning objectives | Not started |
 | 9 | [#33](https://github.com/kriezer12/CCNA-Reviewer/issues/33) Explore routing decisions and packet flow interactively | Not started |
