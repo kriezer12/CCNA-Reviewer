@@ -16,6 +16,8 @@ const functionSearchPathMigrationPath = new URL("../../supabase/migrations/20260
 const functionSearchPathMigration = await readFile(functionSearchPathMigrationPath, "utf8")
 const functionPrivilegesMigrationPath = new URL("../../supabase/migrations/20260920135330_grant_jsonb_function_execute.sql", import.meta.url)
 const functionPrivilegesMigration = await readFile(functionPrivilegesMigrationPath, "utf8")
+const practiceDraftMigration = await readFile(new URL("../../supabase/migrations/20261005031723_practice_drafts.sql", import.meta.url), "utf8")
+const objectiveNotesMigration = await readFile(new URL("../../supabase/migrations/20261005033214_objective_notes.sql", import.meta.url), "utf8")
 
 test("progress migration declares all user-owned tables and constraints", () => {
   for (const table of ["topic_progress", "lab_progress", "study_sessions", "quiz_attempts"]) {
@@ -74,4 +76,22 @@ test("database helper functions pin their search path", () => {
 
 test("authenticated quiz writes can execute the payload check helper", () => {
   assert.match(functionPrivilegesMigration, /grant execute on function public\.ccna_jsonb_object_count\(jsonb\) to authenticated/)
+})
+
+test("practice drafts are owner-private and use conditional revisions", () => {
+  assert.match(practiceDraftMigration, /create table public\.practice_drafts/)
+  assert.match(practiceDraftMigration, /enable row level security/)
+  assert.match(practiceDraftMigration, /private\.is_learning_owner\(\)/)
+  assert.match(practiceDraftMigration, /user_id = \(select auth\.uid\(\)\)/)
+  assert.match(practiceDraftMigration, /grant update \(draft, revision, updated_at\)/)
+  assert.doesNotMatch(practiceDraftMigration, /grant .* on public\.practice_drafts to anon/)
+})
+
+test("objective notes use the canonical objective set, length bound, and private conditional writes", () => {
+  assert.match(objectiveNotesMigration, /create table public\.objective_notes/)
+  assert.match(objectiveNotesMigration, /char_length\(body\) between 1 and 5000/)
+  assert.match(objectiveNotesMigration, /'6\.7'/)
+  assert.match(objectiveNotesMigration, /private\.is_learning_owner\(\)/)
+  assert.match(objectiveNotesMigration, /user_id = \(select auth\.uid\(\)\)/)
+  assert.doesNotMatch(objectiveNotesMigration, /grant .* on public\.objective_notes to anon/)
 })

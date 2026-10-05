@@ -1,13 +1,17 @@
 import Link from "next/link"
-import { ArrowUpRight, BookOpen, FlaskConical, Terminal } from "lucide-react"
+import { ArrowUpRight } from "lucide-react"
 
 import { RetryButton } from "@/components/dashboard/retry-button"
 import { Badge } from "@/components/ui/badge"
 import { buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card"
 import type { StudyTodayRecommendation } from "@/lib/study-today-model"
+import { StudySequence, type StudySequenceStep } from "@/components/dashboard/study-sequence"
+import { randomUUID } from "node:crypto"
 
-export function StudyTodayPanel({ recommendation }: { recommendation: StudyTodayRecommendation }) {
+export function StudyTodayPanel({ recommendation, dueReviewCount, dueReviewError }: {
+  recommendation: StudyTodayRecommendation; dueReviewCount:number|null; dueReviewError:boolean
+}) {
   if (recommendation.kind === "unavailable") {
     return (
       <Card aria-labelledby="study-today-heading">
@@ -42,6 +46,21 @@ export function StudyTodayPanel({ recommendation }: { recommendation: StudyToday
   }
 
   const isLesson = recommendation.kind === "lesson"
+  const objectiveId = isLesson ? recommendation.objective.id : recommendation.lab.objectiveIds[0]
+  const application = isLesson ? recommendation.relatedLab : recommendation.lab
+  const practice = `/practice?objective=${encodeURIComponent(objectiveId)}&count=5&mode=topic&feedback=guided&seed=${randomUUID()}`
+  const interactive = objectiveId === "1.6"
+    ? {title:"Apply with subnetting practice", description:"Calculate a seeded subnet and inspect field-specific feedback.", href:"/exercises/subnetting", estimate:10}
+    : objectiveId === "3.2"
+      ? {title:"Apply with routing practice", description:"Choose installed routes and trace a packet path hop by hop.", href:"/exercises/routing", estimate:12}
+      : null
+  const steps:StudySequenceStep[] = [
+    {id:"read",title:"Read the guide",description:"Study the objective and its worked example.",href:`/learn/${objectiveId}`,estimate:20},
+    {id:"recall",title:"Recall twice",description:"Answer both checks before revealing the explanations.",href:`/learn/${objectiveId}#recall`,estimate:5},
+    {id:"practice",title:"Practice five questions",description:"Use focused guided practice for this objective.",href:practice,estimate:10},
+    ...(interactive?[{id:"apply",...interactive,optional:true}]:application?[{id:"apply",title:"Apply in a lab",description:`Show the practical steps in ${application.id}: ${application.title}.`,href:`/labs/${application.id}`,estimate:application.durationMinutes,optional:true}]:recommendation.drill?[{id:"apply",title:"Apply with a command drill",description:`Practice ${recommendation.drill.title}.`,href:recommendation.drill.href,estimate:recommendation.drill.suggestedMinutes,optional:true}]:[]),
+    {id:"review",title:"Review due questions",description:dueReviewError?"The due count could not be loaded; open the list to retry.":`${dueReviewCount??0} questions are due in your study date.`,href:"/review",estimate:10,optional:true},
+  ]
   return (
     <Card aria-labelledby="study-today-heading" className="border-primary/30 bg-muted/40">
       <CardHeader className="gap-3">
@@ -54,12 +73,8 @@ export function StudyTodayPanel({ recommendation }: { recommendation: StudyToday
       </CardHeader>
       <CardContent className="flex flex-col gap-5">
         <p className="text-base leading-7">{recommendation.reason}</p>
+        <StudySequence steps={steps}/>
         <p className="text-sm text-muted-foreground">{isLesson ? `Suggested study block: ${recommendation.suggestedMinutes} minutes` : `Lab duration estimate: ${recommendation.suggestedMinutes} minutes`}. Planning estimate only; no study time is recorded by opening this activity.</p>
-        <div className="flex flex-wrap gap-3">
-          <Link className={buttonVariants({ className: "min-h-11 max-w-full whitespace-normal text-left", size: "lg" })} href={recommendation.href}>{isLesson ? <BookOpen aria-hidden="true" data-icon="inline-start" /> : <FlaskConical aria-hidden="true" data-icon="inline-start" />}{recommendation.actionLabel}<ArrowUpRight aria-hidden="true" data-icon="inline-end" /></Link>
-          {isLesson && recommendation.relatedLab ? <Link className={buttonVariants({ className: "min-h-11 max-w-full whitespace-normal text-left", size: "lg", variant: "outline" })} href={`/labs/${recommendation.relatedLab.id}`}>Open {recommendation.relatedLab.id}: {recommendation.relatedLab.title}</Link> : null}
-        </div>
-        {recommendation.drill ? <div className="flex flex-col gap-2 border-t border-border pt-4"><span className="text-sm text-muted-foreground">Suggested warm-up: 5 minutes. Practice is temporary and does not record study time.</span><Link className="inline-flex min-h-11 w-fit items-center gap-2 text-base font-medium underline underline-offset-4 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" href={recommendation.drill.href}><Terminal aria-hidden="true" className="size-4" />Practice {recommendation.drill.title}</Link></div> : null}
         <NavigationLinks />
       </CardContent>
     </Card>

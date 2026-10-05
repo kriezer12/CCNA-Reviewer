@@ -17,6 +17,8 @@ let failReads = new Set()
 let failWrites = new Set()
 let expireAuth = false
 let fixtureRows = {}
+let correctChoices = {}
+let reviewSchedules = {}
 
 const user = {
   id: "e2e-owner",
@@ -74,6 +76,8 @@ const authServer = createServer(async (request, response) => {
     failWrites = new Set(body.failWrites ?? [])
     expireAuth = Boolean(body.expireAuth)
     fixtureRows = body.rows ?? {}
+    correctChoices = body.correctChoices ?? {}
+    reviewSchedules = {}
     sendJson(response, 200, { responseDelayMs, failReads: [...failReads], failWrites: [...failWrites], expireAuth }, corsHeaders)
     return
   }
@@ -124,15 +128,116 @@ const authServer = createServer(async (request, response) => {
       sendJson(response, 503, { message: `Fixture failure for ${table}`, code: "fixture_failure" }, corsHeaders)
       return
     }
+    if (table === "rpc/record_review_check" && request.method === "POST") {
+      const body = await readJson(request)
+      const key = `${user.id}:${body.p_question_id}:${body.p_content_revision}:${new Intl.DateTimeFormat("en-CA", {timeZone:"Asia/Manila"}).format(new Date())}`
+      const row = (fixtureRows.review_items ?? []).find(item => item.user_id === user.id && item.question_id === body.p_question_id && item.content_revision === body.p_content_revision)
+      if (!row) { sendJson(response,404,{message:"Saved review unavailable",code:"P0002"},corsHeaders); return }
+      let result = reviewSchedules[key]
+      if (!result) {
+        const correct = correctChoices[body.p_question_id] === body.p_selected_choice
+        const stage = correct ? Math.min(row.successful_stage + 1,4) : 0
+        const days = correct ? [3,7,14,30][Math.min(row.successful_stage,3)] : 1
+        const day = new Date(`${key.slice(key.lastIndexOf(":")+1)}T00:00:00Z`)
+        day.setUTCDate(day.getUTCDate()+days)
+        result = {is_correct:correct,due_on:day.toISOString().slice(0,10),successful_stage:stage,already_checked:false}
+        reviewSchedules[key] = result
+      } else result = {...result,already_checked:true}
+      row.successful_stage = result.successful_stage
+      row.due_on = result.due_on
+      response.writeHead(200,{...corsHeaders,"Content-Type":"application/json; charset=utf-8"}).end(JSON.stringify([result]))
+      return
+    }
     if (request.method === "POST" && (table === "topic_progress" || table === "lab_progress")) {
       const record = await readJson(request)
       const key = table === "topic_progress" ? "objective_id" : "lab_id"
       const existing = fixtureRows[table] ?? []
       fixtureRows[table] = [...existing.filter((row) => row[key] !== record[key]), record]
     }
-    const tableRows = request.method === "GET" ? (fixtureRows[table] ?? []) : []
+    if (table === "review_items" && request.method === "POST") {
+      const records = await readJson(request)
+      const existing = fixtureRows[table] ?? []
+      for (const record of records) {
+        if (!existing.some(row => row.user_id === record.user_id && row.question_id === record.question_id && row.content_revision === record.content_revision))
+          existing.push({ ...record, due_on: new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Manila" }).format(new Date()), saved_at: new Date().toISOString(), successful_stage: 0 })
+      }
+      fixtureRows[table] = existing
+    }
+    if (table === "review_items" && request.method === "DELETE") {
+      const questionId = requestUrl.searchParams.get("question_id")?.replace(/^eq\./, "")
+      const revision = Number(requestUrl.searchParams.get("content_revision")?.replace(/^eq\./, ""))
+      fixtureRows[table] = (fixtureRows[table] ?? []).filter(row => row.question_id !== questionId || row.content_revision !== revision)
+    }
+    if (table === "bookmarks" && request.method === "POST") {
+      const record = await readJson(request)
+      const existing = fixtureRows[table] ?? []
+      if (!existing.some(row => row.user_id === record.user_id && row.resource_type === record.resource_type && row.resource_id === record.resource_id))
+        existing.push({ ...record, saved_at: new Date().toISOString() })
+      fixtureRows[table] = existing
+    }
+    if (table === "bookmarks" && request.method === "DELETE") {
+      const type = requestUrl.searchParams.get("resource_type")?.replace(/^eq\./, "")
+      const id = requestUrl.searchParams.get("resource_id")?.replace(/^eq\./, "")
+      fixtureRows[table] = (fixtureRows[table] ?? []).filter(row => row.resource_type !== type || row.resource_id !== id)
+    }
+    let draftMutationRows = null
+    let noteMutationRows = null
+    if (table === "practice_drafts" && request.method === "POST") {
+      fixtureRows.practice_drafts = [await readJson(request)]
+    }
+    if (table === "practice_drafts" && request.method === "PATCH") {
+      const body = await readJson(request)
+      const revision = Number(requestUrl.searchParams.get("revision")?.replace(/^eq\./, ""))
+      const existing = fixtureRows.practice_drafts?.[0]
+      if (existing?.revision === revision) {
+        fixtureRows.practice_drafts = [{ ...existing, ...body }]
+        draftMutationRows = fixtureRows.practice_drafts
+      }
+    }
+    if (table === "practice_drafts" && request.method === "DELETE") {
+      const revision = Number(requestUrl.searchParams.get("revision")?.replace(/^eq\./, ""))
+      draftMutationRows = (fixtureRows.practice_drafts ?? []).filter(row => row.revision === revision)
+      fixtureRows.practice_drafts = (fixtureRows.practice_drafts ?? []).filter(row => row.revision !== revision)
+    }
+    if (table === "objective_notes" && request.method === "POST") {
+      const record = await readJson(request)
+      if ((fixtureRows.objective_notes ?? []).some(row => row.objective_id === record.objective_id)) {
+        sendJson(response, 409, { message: "duplicate note" }, corsHeaders)
+        return
+      }
+      fixtureRows.objective_notes = [...(fixtureRows.objective_notes ?? []), record]
+    }
+    if (table === "objective_notes" && request.method === "PATCH") {
+      const body = await readJson(request)
+      const objectiveId = requestUrl.searchParams.get("objective_id")?.replace(/^eq\./, "")
+      const revision = Number(requestUrl.searchParams.get("revision")?.replace(/^eq\./, ""))
+      const current = (fixtureRows.objective_notes ?? []).find(row => row.objective_id === objectiveId && row.revision === revision)
+      if (current) {
+        fixtureRows.objective_notes = fixtureRows.objective_notes.map(row => row === current ? { ...row, ...body } : row)
+        noteMutationRows = fixtureRows.objective_notes.filter(row => row.objective_id === objectiveId)
+      }
+    }
+    if (table === "objective_notes" && request.method === "DELETE") {
+      const objectiveId = requestUrl.searchParams.get("objective_id")?.replace(/^eq\./, "")
+      const revision = Number(requestUrl.searchParams.get("revision")?.replace(/^eq\./, ""))
+      noteMutationRows = (fixtureRows.objective_notes ?? []).filter(row => row.objective_id === objectiveId && row.revision === revision)
+      fixtureRows.objective_notes = (fixtureRows.objective_notes ?? []).filter(row => row.objective_id !== objectiveId || row.revision !== revision)
+    }
+    const tableRows = request.method === "GET" || request.method === "HEAD" ? (fixtureRows[table] ?? []) : request.headers.prefer?.includes("return=representation") ? (draftMutationRows ?? noteMutationRows ?? fixtureRows[table] ?? []) : []
     const requestedLab = requestUrl.searchParams.get("lab_id")?.replace(/^eq\./, "")
-    const rows = requestedLab ? tableRows.filter((row) => row.lab_id === requestedLab) : tableRows
+    const requestedObjective = requestUrl.searchParams.get("objective_id")?.replace(/^eq\./, "")
+    const requestedUser = requestUrl.searchParams.get("user_id")?.replace(/^eq\./, "")
+    const requestedType = requestUrl.searchParams.get("resource_type")?.replace(/^eq\./, "")
+    const requestedId = requestUrl.searchParams.get("resource_id")?.replace(/^eq\./, "")
+    const requestedIds = requestUrl.searchParams.get("resource_id")?.match(/^in\.\((.*)\)$/)?.[1]?.split(",") ?? []
+    const dueBefore = requestUrl.searchParams.get("due_on")?.match(/^lte\.(.*)$/)?.[1]
+    const requestedRevision = requestUrl.searchParams.get("revision")?.replace(/^eq\./, "")
+    const rows = tableRows.filter((row) => (!requestedLab || row.lab_id === requestedLab) &&
+      (!requestedObjective || row.objective_id === requestedObjective) &&
+      (!requestedUser || row.user_id === requestedUser) && (!requestedType || row.resource_type === requestedType) &&
+      (!requestedId || row.resource_id === requestedId) && (!requestedIds.length || requestedIds.includes(row.resource_id)) &&
+      (!requestedRevision || draftMutationRows !== null || noteMutationRows !== null || String(row.revision) === requestedRevision) &&
+      (!dueBefore || row.due_on <= dueBefore))
     response.writeHead(200, {
       ...corsHeaders,
       "Content-Type": "application/json; charset=utf-8",

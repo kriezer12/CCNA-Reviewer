@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import {
   BookOpen,
   FlaskConical,
+  Calculator,
   LayoutDashboard,
   ShieldCheck,
   Terminal,
@@ -16,6 +17,11 @@ import { cn } from "cn"
 const navigation = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
   { label: "Roadmap", href: "/roadmap", icon: BookOpen },
+  { label: "Learn", href: "/learn", icon: BookOpen },
+  { label: "Practice", href: "/practice", icon: ShieldCheck },
+  { label: "Review", href: "/review", icon: BookOpen },
+  { label: "Bookmarks", href: "/bookmarks", icon: BookOpen },
+  { label: "Exercises", href: "/exercises", icon: Calculator },
   { label: "Labs", href: "/labs", icon: FlaskConical },
   { label: "Command drills", href: "/command-drills", icon: Terminal },
   { label: "Readiness", href: "/readiness", icon: ShieldCheck },
@@ -39,6 +45,7 @@ export function DashboardNavigation({ orientation }: { orientation: "horizontal"
             aria-current={isActive ? "page" : undefined}
             className={buttonVariants({
               className: cn(
+                "min-h-11",
                 orientation === "vertical" ? "justify-start gap-3" : "shrink-0 gap-2",
                 !isActive && "text-muted-foreground",
               ),

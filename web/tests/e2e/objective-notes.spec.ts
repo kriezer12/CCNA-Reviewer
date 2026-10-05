@@ -1,0 +1,55 @@
+import { expect, test } from "@playwright/test"
+const fixture = "http://127.0.0.1:54321"
+test.beforeEach(async ({ request }) => { await request.post(`${fixture}/__test/config`, { data: {} }) })
+test.afterEach(async ({ request }) => { await request.post(`${fixture}/__test/config`, { data: {} }) })
+
+test("save, edit, reopen, and delete a plain-text objective note across contexts", async ({ page, browser }) => {
+  await page.goto("/learn/1.1")
+  const note = page.getByLabel("Note for objective 1.1")
+  await note.fill("Remember <script> is only text here.")
+  await page.getByRole("button", { name: "Save note", exact: true }).click()
+  await expect(page.getByText("Note saved privately.", { exact: true })).toBeVisible()
+  await expect(note).toHaveValue("Remember <script> is only text here.")
+  const context = await browser.newContext({ storageState: await page.context().storageState() })
+  const second = await context.newPage()
+  await second.goto("http://127.0.0.1:3002/learn/1.1")
+  const secondNote = second.getByLabel("Note for objective 1.1")
+  await expect(secondNote).toHaveValue("Remember <script> is only text here.")
+  await secondNote.fill("Updated reminder with a second device.")
+  await second.getByRole("button", { name: "Save note", exact: true }).click()
+  await expect(second.getByText("Note saved privately.", { exact: true })).toBeVisible()
+  await second.getByRole("button", { name: "Delete note", exact: true }).click()
+  await expect(secondNote).toHaveValue("")
+  await context.close()
+})
+
+test("note errors preserve edits and read failures do not look empty", async ({ page, request }) => {
+  await request.post(`${fixture}/__test/config`, { data: { failReads: ["objective_notes"] } })
+  await page.goto("/learn/1.2")
+  await expect(page.getByText("Your note could not be loaded. Retry before editing so a saved note is not mistaken for an empty one.", { exact: true })).toBeVisible()
+  const note = page.getByLabel("Note for objective 1.2")
+  await expect(note).toBeDisabled()
+  await request.post(`${fixture}/__test/config`, { data: { failWrites: ["objective_notes"] } })
+  await page.getByRole("button", { name: "Retry loading note", exact: true }).click()
+  await note.fill("Retry should preserve this text.")
+  await page.getByRole("button", { name: "Save note", exact: true }).click()
+  await expect(note).toHaveValue("Retry should preserve this text.")
+  await expect(page.getByText(/not saved/)).toBeVisible()
+})
+
+test("note endpoint rejects invalid objectives, oversized content, and expired auth", async ({ page, request }) => {
+  await page.goto("/learn/1.3")
+  expect((await page.request.get("/api/objective-notes/99.99")).status()).toBe(404)
+  expect((await page.request.post("/api/objective-notes/1.3", { data: { note: "x".repeat(5001) } })).status()).toBe(400)
+  await request.post(`${fixture}/__test/config`, { data: { expireAuth: true } })
+  expect((await page.request.get("/api/objective-notes/1.3")).status()).toBe(401)
+})
+
+test("conditional note revisions reject a stale cross-device overwrite", async ({ page }) => {
+  await page.goto("/learn/1.4")
+  const created = await page.request.post("/api/objective-notes/1.4", { data: { note: "first" } })
+  expect(created.status()).toBe(200)
+  expect((await page.request.put("/api/objective-notes/1.4", { data: { revision: 1, note: "newer" } })).status()).toBe(200)
+  const stale = await page.request.put("/api/objective-notes/1.4", { data: { revision: 1, note: "stale" } })
+  expect(stale.status()).toBe(409)
+})
