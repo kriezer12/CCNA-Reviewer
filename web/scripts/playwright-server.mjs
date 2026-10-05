@@ -130,6 +130,20 @@ const authServer = createServer(async (request, response) => {
       const existing = fixtureRows[table] ?? []
       fixtureRows[table] = [...existing.filter((row) => row[key] !== record[key]), record]
     }
+    if (table === "review_items" && request.method === "POST") {
+      const records = await readJson(request)
+      const existing = fixtureRows[table] ?? []
+      for (const record of records) {
+        if (!existing.some(row => row.user_id === record.user_id && row.question_id === record.question_id && row.content_revision === record.content_revision))
+          existing.push({ ...record, due_on: new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Manila" }).format(new Date()), saved_at: new Date().toISOString(), successful_stage: 0 })
+      }
+      fixtureRows[table] = existing
+    }
+    if (table === "review_items" && request.method === "DELETE") {
+      const questionId = requestUrl.searchParams.get("question_id")?.replace(/^eq\./, "")
+      const revision = Number(requestUrl.searchParams.get("content_revision")?.replace(/^eq\./, ""))
+      fixtureRows[table] = (fixtureRows[table] ?? []).filter(row => row.question_id !== questionId || row.content_revision !== revision)
+    }
     const tableRows = request.method === "GET" ? (fixtureRows[table] ?? []) : []
     const requestedLab = requestUrl.searchParams.get("lab_id")?.replace(/^eq\./, "")
     const rows = requestedLab ? tableRows.filter((row) => row.lab_id === requestedLab) : tableRows

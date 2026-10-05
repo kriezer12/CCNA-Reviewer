@@ -16,6 +16,7 @@
     "test:analytics": "node --experimental-strip-types --experimental-transform-types scripts/analytics.test.mjs",
     "test:learning": "node --experimental-strip-types --experimental-transform-types scripts/learning.test.mjs",
     "test:exercises": "node --experimental-strip-types --experimental-transform-types --test scripts/exercises.test.mjs",
+    "test:review": "node --experimental-strip-types --experimental-transform-types --test scripts/review.test.mjs",
     "test:quizzes": "node --experimental-strip-types --experimental-transform-types scripts/quizzes.test.mjs",
     "test:migration": "node --test scripts/migration.test.mjs",
     "test:navigation": "node --test scripts/navigation.test.mjs",

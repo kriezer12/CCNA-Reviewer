@@ -14,6 +14,7 @@ import {
 import { Field, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field"
 import { Progress } from "@/components/ui/progress"
 import type { PracticeQuestion } from "@/content/practice/types"
+import { SaveMissed } from "@/components/learning/save-missed"
 
 export interface PracticeResources {
   readonly links: readonly { title: string; href: string }[]
@@ -214,6 +215,7 @@ export function PracticeSession({
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-3">
+            <SaveMissed questions={questions} answers={answers} />
             <Button className="min-h-11" onClick={() => restart()}>
               Retry session
             </Button>

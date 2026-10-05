@@ -9,10 +9,10 @@ User-confirmed code-review fixed point: b95456dc8262e4bdad723c7024343eb2e3c78bfa
 | Draft | Canonical ticket | State |
 | --- | --- | --- |
 | 1 | [#25](https://github.com/kriezer12/CCNA-Reviewer/issues/25) Audit and refine IPv4/IPv6 learning content | Not started |
-| 2 | [#26](https://github.com/kriezer12/CCNA-Reviewer/issues/26) Save missed practice questions to a private review list | Not started |
+| 2 | [#26](https://github.com/kriezer12/CCNA-Reviewer/issues/26) Save missed practice questions to a private review list | Implemented; targeted QA in progress |
 | 3 | [#27](https://github.com/kriezer12/CCNA-Reviewer/issues/27) Bookmark guides and practice questions across devices | Not started |
 | 4 | [#28](https://github.com/kriezer12/CCNA-Reviewer/issues/28) Review due questions from the dashboard | Not started |
-| 5 | [#29](https://github.com/kriezer12/CCNA-Reviewer/issues/29) Practice IPv4 subnetting with interactive feedback | Implemented; targeted QA in progress |
+| 5 | [#29](https://github.com/kriezer12/CCNA-Reviewer/issues/29) Practice IPv4 subnetting with interactive feedback | Implemented; targeted QA passes (including 200% text reflow) |
 | 6 | [#30](https://github.com/kriezer12/CCNA-Reviewer/issues/30) Guide a daily read-recall-practice-apply-review sequence | Not started |
 | 7 | [#31](https://github.com/kriezer12/CCNA-Reviewer/issues/31) Save and resume unfinished practice | Not started |
 | 8 | [#32](https://github.com/kriezer12/CCNA-Reviewer/issues/32) Keep private notes on learning objectives | Not started |

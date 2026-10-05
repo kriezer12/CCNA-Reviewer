@@ -14,6 +14,9 @@ export interface PracticeChoice {
 }
 export interface PracticeQuestion {
   readonly id: string
+  /** Revision of the published meaning. Semantic changes require a new ID;
+   * spelling and source-locator corrections retain this revision. */
+  readonly contentRevision: number
   readonly objectiveIds: readonly ObjectiveId[]
   readonly childObjectiveIds: readonly string[]
   readonly domainId: string
@@ -47,6 +50,7 @@ export function question(
   const rotated = [...options.slice(offset), ...options.slice(0, offset)]
   return {
     id,
+    contentRevision: 1,
     objectiveIds: [objectiveId],
     childObjectiveIds,
     domainId: objective.domainId,

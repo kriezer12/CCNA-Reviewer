@@ -19,6 +19,7 @@ const navigation = [
   { label: "Roadmap", href: "/roadmap", icon: BookOpen },
   { label: "Learn", href: "/learn", icon: BookOpen },
   { label: "Practice", href: "/practice", icon: ShieldCheck },
+  { label: "Review", href: "/review", icon: BookOpen },
   { label: "Exercises", href: "/exercises", icon: Calculator },
   { label: "Labs", href: "/labs", icon: FlaskConical },
   { label: "Command drills", href: "/command-drills", icon: Terminal },
