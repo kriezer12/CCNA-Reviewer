@@ -64,7 +64,7 @@ export default async function Home() {
 
       {dataError ? <DashboardDataError /> : null}
 
-      <StudyTodayPanel recommendation={recommendation} />
+      <StudyTodayPanel recommendation={recommendation} dueReviewCount={dueReviewCount??null} dueReviewError={Boolean(dueReviewError)} />
 
       <Card>
         <CardHeader>
