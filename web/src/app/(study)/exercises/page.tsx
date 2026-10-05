@@ -41,6 +41,17 @@ export default async function ExercisesPage() {
       </Card>
       <Card>
         <CardHeader>
+          <CardTitle>Ordered IPv4 access lists</CardTitle>
+          <CardDescription>
+            Trace eight standard and extended packet decisions with interface direction, wildcard matching, first-match order, and implicit deny.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Link href="/exercises/access-lists" className={buttonVariants({ className: "min-h-11" })}>Start ACL practice</Link>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
           <CardTitle>Routing and packet flow</CardTitle>
           <CardDescription>
             Choose the installed route for eight original destinations, then trace four Ethernet/IPv4 packet paths hop by hop.

@@ -6,6 +6,7 @@ import {
   selectSubnetCase,
 } from "../src/lib/exercises/subnet.ts"
 import { routeCases, packetCases, evaluateRoute, prefixMatches } from "../src/lib/exercises/routing.ts"
+import { aclCases, evaluateAcl, wildcardMatches } from "../src/lib/exercises/acl.ts"
 
 test("subnet feedback identifies each correct field for a documentation /27 case", () => {
   const item = subnetCases.find((item) => item.id === "subnet-01")
@@ -106,4 +107,13 @@ test("packet-flow cases explain four ordered Layer 2 and Layer 3 outcomes", () =
     assert.ok(item.choices.some(choice => choice.id === item.correctChoice), item.id)
     assert.ok(item.explanation.length > 40, item.id)
   }
+})
+
+test("ACL cases select the first matching standard or extended entry and implicit deny", () => {
+  assert.equal(aclCases.length, 8)
+  for (const item of aclCases) assert.equal(evaluateAcl(item)?.sequence ?? null, item.expectedSequence, item.id)
+  assert.equal(wildcardMatches("10.20.0.0", "0.0.255.255", "10.20.99.1"), true)
+  assert.equal(wildcardMatches("10.20.0.0", "0.0.255.255", "10.21.0.1"), false)
+  assert.equal(wildcardMatches("10.0.0.0", "0.0.0.0", "10.0.0.1"), false)
+  assert.equal(wildcardMatches("garbage", "0.0.0.0", "10.0.0.1"), false)
 })
