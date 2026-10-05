@@ -39,6 +39,17 @@ export default async function ExercisesPage() {
           </Link>
         </CardContent>
       </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Routing and packet flow</CardTitle>
+          <CardDescription>
+            Choose the installed route for eight original destinations, then trace four Ethernet/IPv4 packet paths hop by hop.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Link href="/exercises/routing" className={buttonVariants({ className: "min-h-11" })}>Start routing practice</Link>
+        </CardContent>
+      </Card>
     </>
   )
 }

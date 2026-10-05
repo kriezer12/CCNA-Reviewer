@@ -5,6 +5,7 @@ import {
   subnetCases,
   selectSubnetCase,
 } from "../src/lib/exercises/subnet.ts"
+import { routeCases, packetCases, evaluateRoute, prefixMatches } from "../src/lib/exercises/routing.ts"
 
 test("subnet feedback identifies each correct field for a documentation /27 case", () => {
   const item = subnetCases.find((item) => item.id === "subnet-01")
@@ -83,4 +84,26 @@ test("case seeds repeat and the catalog covers twelve distinct cases and all sup
     [...new Set(subnetCases.map((item) => item.prefix))].sort(),
     [24, 25, 26, 27, 28, 29, 30],
   )
+})
+
+test("routing decisions choose the longest matching installed prefix or return no route", () => {
+  for (const item of routeCases) {
+    const selected = evaluateRoute(item)
+    assert.equal(selected?.id ?? "drop", item.correctChoice, item.id)
+  }
+  assert.equal(prefixMatches("10.0.0.0/8", "10.255.255.255"), true)
+  assert.equal(prefixMatches("10.0.0.0/8", "11.0.0.0"), false)
+  assert.equal(prefixMatches("0.0.0.0/0", "203.0.113.7"), true)
+  assert.equal(prefixMatches("10.0.0.0/33", "10.1.2.3"), false)
+  assert.equal(prefixMatches("garbage", "10.1.2.3"), false)
+  assert.equal(routeCases.length, 8)
+})
+
+test("packet-flow cases explain four ordered Layer 2 and Layer 3 outcomes", () => {
+  assert.equal(packetCases.length, 4)
+  for (const item of packetCases) {
+    assert.ok(item.steps.length >= 3, item.id)
+    assert.ok(item.choices.some(choice => choice.id === item.correctChoice), item.id)
+    assert.ok(item.explanation.length > 40, item.id)
+  }
 })

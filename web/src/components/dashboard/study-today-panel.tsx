@@ -49,11 +49,16 @@ export function StudyTodayPanel({ recommendation, dueReviewCount, dueReviewError
   const objectiveId = isLesson ? recommendation.objective.id : recommendation.lab.objectiveIds[0]
   const application = isLesson ? recommendation.relatedLab : recommendation.lab
   const practice = `/practice?objective=${encodeURIComponent(objectiveId)}&count=5&mode=topic&feedback=guided&seed=${randomUUID()}`
+  const interactive = objectiveId === "1.6"
+    ? {title:"Apply with subnetting practice", description:"Calculate a seeded subnet and inspect field-specific feedback.", href:"/exercises/subnetting", estimate:10}
+    : objectiveId === "3.2"
+      ? {title:"Apply with routing practice", description:"Choose installed routes and trace a packet path hop by hop.", href:"/exercises/routing", estimate:12}
+      : null
   const steps:StudySequenceStep[] = [
     {id:"read",title:"Read the guide",description:"Study the objective and its worked example.",href:`/learn/${objectiveId}`,estimate:20},
     {id:"recall",title:"Recall twice",description:"Answer both checks before revealing the explanations.",href:`/learn/${objectiveId}#recall`,estimate:5},
     {id:"practice",title:"Practice five questions",description:"Use focused guided practice for this objective.",href:practice,estimate:10},
-    ...(application?[{id:"apply",title:"Apply in a lab",description:`Show the practical steps in ${application.id}: ${application.title}.`,href:`/labs/${application.id}`,estimate:application.durationMinutes,optional:true}]:recommendation.drill?[{id:"apply",title:"Apply with a command drill",description:`Practice ${recommendation.drill.title}.`,href:recommendation.drill.href,estimate:recommendation.drill.suggestedMinutes,optional:true}]:objectiveId==="1.6"?[{id:"apply",title:"Apply with subnetting practice",description:"Calculate a seeded subnet and inspect field-specific feedback.",href:"/exercises/subnetting",estimate:10,optional:true}]:[]),
+    ...(interactive?[{id:"apply",...interactive,optional:true}]:application?[{id:"apply",title:"Apply in a lab",description:`Show the practical steps in ${application.id}: ${application.title}.`,href:`/labs/${application.id}`,estimate:application.durationMinutes,optional:true}]:recommendation.drill?[{id:"apply",title:"Apply with a command drill",description:`Practice ${recommendation.drill.title}.`,href:recommendation.drill.href,estimate:recommendation.drill.suggestedMinutes,optional:true}]:[]),
     {id:"review",title:"Review due questions",description:dueReviewError?"The due count could not be loaded; open the list to retry.":`${dueReviewCount??0} questions are due in your study date.`,href:"/review",estimate:10,optional:true},
   ]
   return (
