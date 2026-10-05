@@ -187,6 +187,7 @@ export default async function PracticePage({
         initialQuestions={questions}
         requestedCount={requestedQuestion ? 1 : mode === "mixed" ? 20 : count}
         feedback={feedback === "checkpoint" ? "checkpoint" : "guided"}
+        sessionSettings={{ seed, filters, mode: mode === "mixed" ? "mixed" : "topic" }}
         newSessionHref={`/practice?${newParams}`}
         resources={Object.fromEntries(
           questions.map((question) => [

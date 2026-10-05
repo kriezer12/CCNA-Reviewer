@@ -23,7 +23,7 @@ export default defineConfig({
     },
     {
       name: "desktop-chromium",
-      testMatch: /(navigation|command-drills|learning|exercises|review|bookmarks|sequence)\.spec\.ts/,
+      testMatch: /(navigation|command-drills|learning|exercises|review|bookmarks|sequence|practice-drafts)\.spec\.ts/,
       dependencies: ["setup"],
       use: { ...devices["Desktop Chrome"], storageState: authFile },
     },

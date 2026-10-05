@@ -4,11 +4,21 @@ import { test } from "node:test"
 import { practiceQuestions } from "../src/content/practice/index.ts"
 import { curriculum } from "../src/content/curriculum.ts"
 import { nextReviewSchedule, validateMissedSubmission } from "../src/lib/review-model.ts"
+import { validatePracticeDraft } from "../src/lib/practice-draft-model.ts"
 
 const first = practiceQuestions[0]
 const second = practiceQuestions[1]
 const answer = (item, selectedChoice = item.correctOptionId) => ({
   questionId: item.id, contentRevision: item.contentRevision, selectedChoice,
+})
+test("practice draft accepts canonical ordered answers and rejects stale or untrusted state", () => {
+  const draft = { questionRefs: [{questionId:first.id,contentRevision:first.contentRevision}], seed:"seed", filters:{domain:"",category:"",objective:"",difficulty:""}, mode:"topic", feedback:"guided", answers:{[first.id]:first.correctOptionId}, checked:[first.id], position:0 }
+  assert.ok(validatePracticeDraft(draft))
+  assert.equal(validatePracticeDraft({...draft, questionRefs:[{questionId:first.id,contentRevision:99}]}), null)
+  assert.equal(validatePracticeDraft({...draft, answers:{[first.id]:"forged"}}), null)
+  assert.equal(validatePracticeDraft({...draft, checked:["unknown"]}), null)
+  assert.equal(validatePracticeDraft({...draft, feedback:"checkpoint", checked:[first.id]}), null)
+  assert.equal("score" in validatePracticeDraft({...draft, score:1}), false)
 })
 test("derive only missed canonical questions, ignoring a claimed client score", () => {
   const wrong = second.choices.find(item => item.id !== second.correctOptionId).id

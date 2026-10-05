@@ -180,16 +180,36 @@ const authServer = createServer(async (request, response) => {
       const id = requestUrl.searchParams.get("resource_id")?.replace(/^eq\./, "")
       fixtureRows[table] = (fixtureRows[table] ?? []).filter(row => row.resource_type !== type || row.resource_id !== id)
     }
-    const tableRows = request.method === "GET" || request.method === "HEAD" ? (fixtureRows[table] ?? []) : []
+    let draftMutationRows = null
+    if (table === "practice_drafts" && request.method === "POST") {
+      fixtureRows.practice_drafts = [await readJson(request)]
+    }
+    if (table === "practice_drafts" && request.method === "PATCH") {
+      const body = await readJson(request)
+      const revision = Number(requestUrl.searchParams.get("revision")?.replace(/^eq\./, ""))
+      const existing = fixtureRows.practice_drafts?.[0]
+      if (existing?.revision === revision) {
+        fixtureRows.practice_drafts = [{ ...existing, ...body }]
+        draftMutationRows = fixtureRows.practice_drafts
+      }
+    }
+    if (table === "practice_drafts" && request.method === "DELETE") {
+      const revision = Number(requestUrl.searchParams.get("revision")?.replace(/^eq\./, ""))
+      draftMutationRows = (fixtureRows.practice_drafts ?? []).filter(row => row.revision === revision)
+      fixtureRows.practice_drafts = (fixtureRows.practice_drafts ?? []).filter(row => row.revision !== revision)
+    }
+    const tableRows = request.method === "GET" || request.method === "HEAD" ? (fixtureRows[table] ?? []) : request.headers.prefer?.includes("return=representation") ? (draftMutationRows ?? fixtureRows[table] ?? []) : []
     const requestedLab = requestUrl.searchParams.get("lab_id")?.replace(/^eq\./, "")
     const requestedUser = requestUrl.searchParams.get("user_id")?.replace(/^eq\./, "")
     const requestedType = requestUrl.searchParams.get("resource_type")?.replace(/^eq\./, "")
     const requestedId = requestUrl.searchParams.get("resource_id")?.replace(/^eq\./, "")
     const requestedIds = requestUrl.searchParams.get("resource_id")?.match(/^in\.\((.*)\)$/)?.[1]?.split(",") ?? []
     const dueBefore = requestUrl.searchParams.get("due_on")?.match(/^lte\.(.*)$/)?.[1]
+    const requestedRevision = requestUrl.searchParams.get("revision")?.replace(/^eq\./, "")
     const rows = tableRows.filter((row) => (!requestedLab || row.lab_id === requestedLab) &&
       (!requestedUser || row.user_id === requestedUser) && (!requestedType || row.resource_type === requestedType) &&
       (!requestedId || row.resource_id === requestedId) && (!requestedIds.length || requestedIds.includes(row.resource_id)) &&
+      (!requestedRevision || draftMutationRows !== null || String(row.revision) === requestedRevision) &&
       (!dueBefore || row.due_on <= dueBefore))
     response.writeHead(200, {
       ...corsHeaders,

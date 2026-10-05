@@ -16,6 +16,8 @@ import { Progress } from "@/components/ui/progress"
 import type { PracticeQuestion } from "@/content/practice/types"
 import { SaveMissed } from "@/components/learning/save-missed"
 import { BookmarkToggle } from "@/components/learning/bookmark-toggle"
+import { PracticeDraft, validatePracticeDraft } from "@/lib/practice-draft-model"
+import { practiceQuestions } from "@/content/practice"
 
 export interface PracticeResources {
   readonly bookmarked?: boolean
@@ -29,21 +31,32 @@ export function PracticeSession({
   newSessionHref,
   requestedCount,
   resources,
+  initialDraft,
+  sessionSettings,
 }: {
   initialQuestions: readonly PracticeQuestion[]
   feedback: "guided" | "checkpoint"
   newSessionHref: string
   requestedCount: number
   resources: Readonly<Record<string, PracticeResources>>
+  initialDraft?: { revision: number; draft: unknown } | null
+  sessionSettings: { seed: string; filters: PracticeDraft["filters"]; mode: PracticeDraft["mode"] }
 }) {
-  const [questions, setQuestions] = useState(initialQuestions)
-  const [answers, setAnswers] = useState<Record<string, string>>({})
-  const [checked, setChecked] = useState<readonly string[]>([])
-  const [index, setIndex] = useState(0)
-  const [started, setStarted] = useState(false)
+  const restored = initialDraft ? validatePracticeDraft(initialDraft.draft) : null
+  const restoredQuestions = restored?.questionRefs.map(ref => initialQuestions.find(q => q.id === ref.questionId && q.contentRevision === ref.contentRevision))
+  const usableDraft = restored && restoredQuestions?.every(Boolean) ? restored : null
+  const [questions, setQuestions] = useState(usableDraft ? restoredQuestions as PracticeQuestion[] : initialQuestions)
+  const [answers, setAnswers] = useState<Record<string, string>>(usableDraft?.answers ?? {})
+  const [checked, setChecked] = useState<readonly string[]>(usableDraft?.checked ?? [])
+  const [index, setIndex] = useState(usableDraft?.position ?? 0)
+  const [started, setStarted] = useState(Boolean(usableDraft))
   const [finished, setFinished] = useState(false)
   const [retryingMissed, setRetryingMissed] = useState(false)
-  const currentFeedback = retryingMissed ? "guided" : feedback
+  const [draftRevision, setDraftRevision] = useState(usableDraft ? initialDraft!.revision : null)
+  const [draftState, setDraftState] = useState("")
+  const [savedDraft, setSavedDraft] = useState<{ revision: number; draft: unknown } | null>(null)
+  const [sessionFeedback, setSessionFeedback] = useState(feedback)
+  const currentFeedback = retryingMissed ? "guided" : sessionFeedback
   const heading = useRef<HTMLHeadingElement>(null)
   const allowLeave = useRef(false)
   const question = questions[index]
@@ -58,10 +71,20 @@ export function PracticeSession({
     if (started) heading.current?.focus()
   }, [index, started, finished])
   useEffect(() => {
+    if (initialDraft) return
+    fetch("/api/practice-drafts").then(async response => {
+      if (response.ok) {
+        const result = await response.json()
+        setSavedDraft(result.draft)
+      }
+    }).catch(() => {})
+  }, [initialDraft])
+  useEffect(() => {
     if (!dirty) return
     allowLeave.current = false
-    const message =
-      "This practice session is temporary. Discard your answers and leave?"
+    const message = draftRevision === null
+      ? "Unsaved answers will be lost if you leave. Save practice before leaving?"
+      : "Unsaved changes will be lost if you leave. Your last explicitly saved draft will remain available."
     const guard = { ...window.history.state, practiceGuard: true }
     if (!window.history.state?.practiceGuard)
       window.history.pushState(guard, "", location.href)
@@ -120,7 +143,7 @@ export function PracticeSession({
       window.removeEventListener("popstate", onPop)
       window.removeEventListener("study:before-navigation", onNavigationIntent)
     }
-  }, [dirty])
+  }, [dirty, draftRevision])
 
   function restart(missedOnly = false) {
     if (
@@ -141,6 +164,44 @@ export function PracticeSession({
     setIndex(0)
     setFinished(false)
     setStarted(true)
+  }
+
+  async function saveDraft() {
+    const draft: Omit<PracticeDraft, "revision"> = {
+      questionRefs: questions.map(item => ({ questionId: item.id, contentRevision: item.contentRevision })),
+      ...sessionSettings, feedback: currentFeedback, answers, checked: [...checked], position: index,
+    }
+    setDraftState("Saving practice…")
+    const expectedRevision = draftRevision ?? savedDraft?.revision ?? null
+    const response = await fetch("/api/practice-drafts", { method: expectedRevision === null ? "POST" : "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(expectedRevision === null ? draft : { revision: expectedRevision, draft }) })
+    const result = await response.json().catch(() => ({}))
+    if (!response.ok) { setDraftState(result.error ?? "Practice could not be saved. Your answers are still here."); return }
+    setDraftRevision(result.revision)
+    setSavedDraft({ revision: result.revision, draft })
+    setDraftState("Practice saved privately. You can resume it from this page on another device.")
+  }
+
+  function resumeDraft() {
+    const draft = savedDraft && validatePracticeDraft(savedDraft.draft)
+    if (!draft) { setDraftState("This saved practice refers to retired or changed questions. Discard it to restart with current content."); return }
+    const restored = draft.questionRefs.map(ref => practiceQuestions.find(q => q.id === ref.questionId && q.contentRevision === ref.contentRevision))
+    if (restored.some(item => !item)) { setDraftState("Some saved questions have changed. Discard this draft to restart with current content."); return }
+    setQuestions(restored as PracticeQuestion[])
+    setAnswers(draft.answers)
+    setChecked(draft.feedback === "guided" ? draft.checked : [])
+    setIndex(draft.position)
+    setSessionFeedback(draft.feedback)
+    setDraftRevision(savedDraft!.revision)
+    setStarted(true)
+  }
+
+  async function removeDraftBeforeFinish() {
+    if (draftRevision === null) { setFinished(true); return }
+    const response = await fetch("/api/practice-drafts", { method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify({ revision: draftRevision }) })
+    const result = await response.json().catch(() => ({}))
+    if (!response.ok) { setDraftState(result.error ?? "Saved practice remains available. Retry discard."); return }
+    setDraftRevision(null)
+    setFinished(true)
   }
 
   if (!question)
@@ -178,6 +239,18 @@ export function PracticeSession({
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
+          {savedDraft ? <div className="flex flex-wrap gap-3 rounded-lg border p-4">
+            <p className="w-full text-sm">A private saved practice is available. Resume it, or start new and replace it explicitly when you save.</p>
+            <Button className="min-h-11" variant="outline" onClick={resumeDraft}>Resume saved practice</Button>
+            <Button className="min-h-11" variant="outline" onClick={() => { setDraftRevision(savedDraft.revision); setStarted(true) }}>Replace with this session</Button>
+            <Button className="min-h-11" variant="ghost" onClick={() => void (async () => {
+              const response = await fetch("/api/practice-drafts", { method:"DELETE", headers:{"content-type":"application/json"}, body:JSON.stringify({revision:savedDraft.revision}) })
+              const result = await response.json().catch(() => ({}))
+              if (response.ok) setSavedDraft(null)
+              else setDraftState(result.error ?? "Saved practice remains available. Retry discard.")
+            })()}>Discard saved practice</Button>
+          </div> : null}
+          {draftState ? <p role="status" className="text-sm text-muted-foreground">{draftState}</p> : null}
           {questions.length < requestedCount ? (
             <p className="text-base leading-7">
               This selection has {questions.length} questions, so your requested{" "}
@@ -345,6 +418,13 @@ export function PracticeSession({
           <Button
             className="min-h-11"
             variant="outline"
+            onClick={() => void saveDraft()}
+          >
+            Save practice
+          </Button>
+          <Button
+            className="min-h-11"
+            variant="outline"
             disabled={index === 0}
             onClick={() => setIndex(index - 1)}
           >
@@ -377,11 +457,12 @@ export function PracticeSession({
               (currentFeedback === "guided" &&
                 checked.length !== questions.length)
             }
-            onClick={() => setFinished(true)}
+            onClick={() => void removeDraftBeforeFinish()}
           >
             Finish and review
           </Button>
         </div>
+        {draftState ? <p role="status" className="text-sm text-muted-foreground">{draftState}</p> : null}
         <p className="text-sm text-muted-foreground">
           {locked
             ? "Checked answers are locked for this session."
