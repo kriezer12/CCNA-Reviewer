@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BookmarkToggle } from "@/components/learning/bookmark-toggle"
 import { createClient } from "@/lib/supabase/server"
 import Link from "next/link"
+import { ObjectiveNoteEditor } from "@/components/learning/objective-note-editor"
 
 export const dynamic = "force-dynamic"
 const sections = [
@@ -40,6 +41,8 @@ export default async function GuidePage({
   const supabase = await createClient()
   const { data: bookmark } = await supabase.from("bookmarks").select("resource_id")
     .eq("user_id", user.id).eq("resource_type", "guide").eq("resource_id", objective.id).maybeSingle()
+  const { data: note, error: noteError } = await supabase.from("objective_notes").select("revision,body")
+    .eq("user_id", user.id).eq("objective_id", objective.id).maybeSingle()
   const model = await loadDashboardModel(user.id, {
     topics: true,
     labs: false,
@@ -221,6 +224,7 @@ export default async function GuidePage({
               })}
             </ul>
           </section>
+          <ObjectiveNoteEditor objectiveId={objective.id} initial={note ? { revision: note.revision, body: note.body } : null} initialError={Boolean(noteError)} />
           {model.dataError ? (
             <DashboardDataError />
           ) : (

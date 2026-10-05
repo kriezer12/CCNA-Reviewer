@@ -181,6 +181,7 @@ const authServer = createServer(async (request, response) => {
       fixtureRows[table] = (fixtureRows[table] ?? []).filter(row => row.resource_type !== type || row.resource_id !== id)
     }
     let draftMutationRows = null
+    let noteMutationRows = null
     if (table === "practice_drafts" && request.method === "POST") {
       fixtureRows.practice_drafts = [await readJson(request)]
     }
@@ -198,8 +199,33 @@ const authServer = createServer(async (request, response) => {
       draftMutationRows = (fixtureRows.practice_drafts ?? []).filter(row => row.revision === revision)
       fixtureRows.practice_drafts = (fixtureRows.practice_drafts ?? []).filter(row => row.revision !== revision)
     }
-    const tableRows = request.method === "GET" || request.method === "HEAD" ? (fixtureRows[table] ?? []) : request.headers.prefer?.includes("return=representation") ? (draftMutationRows ?? fixtureRows[table] ?? []) : []
+    if (table === "objective_notes" && request.method === "POST") {
+      const record = await readJson(request)
+      if ((fixtureRows.objective_notes ?? []).some(row => row.objective_id === record.objective_id)) {
+        sendJson(response, 409, { message: "duplicate note" }, corsHeaders)
+        return
+      }
+      fixtureRows.objective_notes = [...(fixtureRows.objective_notes ?? []), record]
+    }
+    if (table === "objective_notes" && request.method === "PATCH") {
+      const body = await readJson(request)
+      const objectiveId = requestUrl.searchParams.get("objective_id")?.replace(/^eq\./, "")
+      const revision = Number(requestUrl.searchParams.get("revision")?.replace(/^eq\./, ""))
+      const current = (fixtureRows.objective_notes ?? []).find(row => row.objective_id === objectiveId && row.revision === revision)
+      if (current) {
+        fixtureRows.objective_notes = fixtureRows.objective_notes.map(row => row === current ? { ...row, ...body } : row)
+        noteMutationRows = fixtureRows.objective_notes.filter(row => row.objective_id === objectiveId)
+      }
+    }
+    if (table === "objective_notes" && request.method === "DELETE") {
+      const objectiveId = requestUrl.searchParams.get("objective_id")?.replace(/^eq\./, "")
+      const revision = Number(requestUrl.searchParams.get("revision")?.replace(/^eq\./, ""))
+      noteMutationRows = (fixtureRows.objective_notes ?? []).filter(row => row.objective_id === objectiveId && row.revision === revision)
+      fixtureRows.objective_notes = (fixtureRows.objective_notes ?? []).filter(row => row.objective_id !== objectiveId || row.revision !== revision)
+    }
+    const tableRows = request.method === "GET" || request.method === "HEAD" ? (fixtureRows[table] ?? []) : request.headers.prefer?.includes("return=representation") ? (draftMutationRows ?? noteMutationRows ?? fixtureRows[table] ?? []) : []
     const requestedLab = requestUrl.searchParams.get("lab_id")?.replace(/^eq\./, "")
+    const requestedObjective = requestUrl.searchParams.get("objective_id")?.replace(/^eq\./, "")
     const requestedUser = requestUrl.searchParams.get("user_id")?.replace(/^eq\./, "")
     const requestedType = requestUrl.searchParams.get("resource_type")?.replace(/^eq\./, "")
     const requestedId = requestUrl.searchParams.get("resource_id")?.replace(/^eq\./, "")
@@ -207,9 +233,10 @@ const authServer = createServer(async (request, response) => {
     const dueBefore = requestUrl.searchParams.get("due_on")?.match(/^lte\.(.*)$/)?.[1]
     const requestedRevision = requestUrl.searchParams.get("revision")?.replace(/^eq\./, "")
     const rows = tableRows.filter((row) => (!requestedLab || row.lab_id === requestedLab) &&
+      (!requestedObjective || row.objective_id === requestedObjective) &&
       (!requestedUser || row.user_id === requestedUser) && (!requestedType || row.resource_type === requestedType) &&
       (!requestedId || row.resource_id === requestedId) && (!requestedIds.length || requestedIds.includes(row.resource_id)) &&
-      (!requestedRevision || draftMutationRows !== null || String(row.revision) === requestedRevision) &&
+      (!requestedRevision || draftMutationRows !== null || noteMutationRows !== null || String(row.revision) === requestedRevision) &&
       (!dueBefore || row.due_on <= dueBefore))
     response.writeHead(200, {
       ...corsHeaders,
