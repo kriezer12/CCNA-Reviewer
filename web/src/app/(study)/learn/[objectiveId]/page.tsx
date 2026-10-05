@@ -1,4 +1,3 @@
-import Link from "next/link"
 import { notFound } from "next/navigation"
 import { curriculum } from "@/content/curriculum"
 import { commandDrills } from "@/content/command-drills"
@@ -12,6 +11,9 @@ import { RecallChecks } from "@/components/learning/recall-checks"
 import { Badge } from "@/components/ui/badge"
 import { buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { BookmarkToggle } from "@/components/learning/bookmark-toggle"
+import { createClient } from "@/lib/supabase/server"
+import Link from "next/link"
 
 export const dynamic = "force-dynamic"
 const sections = [
@@ -35,6 +37,9 @@ export default async function GuidePage({
     (item) => item.id === objectiveId,
   )
   if (!guide || !objective) notFound()
+  const supabase = await createClient()
+  const { data: bookmark } = await supabase.from("bookmarks").select("resource_id")
+    .eq("user_id", user.id).eq("resource_type", "guide").eq("resource_id", objective.id).maybeSingle()
   const model = await loadDashboardModel(user.id, {
     topics: true,
     labs: false,
@@ -65,6 +70,10 @@ export default async function GuidePage({
         title={objective.title}
         description={guide.summary}
       >
+        <div className="flex flex-wrap items-center gap-3">
+          <BookmarkToggle resourceType="guide" resourceId={objective.id} saved={Boolean(bookmark)} />
+          <Link href="/bookmarks" className={buttonVariants({variant:"outline", className:"min-h-11"})}>My bookmarks</Link>
+        </div>
         <div className="flex flex-wrap gap-2">
           {categoriesForObjective(objective.id).map((category) => (
             <Badge variant="outline" key={category.id}>

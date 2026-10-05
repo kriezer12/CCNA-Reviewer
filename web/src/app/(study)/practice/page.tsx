@@ -5,6 +5,7 @@ import { practiceQuestions } from "@/content/practice"
 import { commandDrills } from "@/content/command-drills"
 import { matchingQuestions, selectPracticeSession } from "@/lib/practice-model"
 import { requireOwner } from "@/lib/supabase/auth"
+import { createClient } from "@/lib/supabase/server"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
 import { PracticeSession } from "@/components/learning/practice-session"
 import { FilterSelect } from "@/components/learning/filter-select"
@@ -26,7 +27,7 @@ export default async function PracticePage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
-  await requireOwner()
+  const owner = await requireOwner()
   const params = await searchParams
   const get = (key: string) =>
     typeof params[key] === "string" && params[key] !== "all"
@@ -46,9 +47,11 @@ export default async function PracticePage({
     ["guided", "checkpoint"].includes(feedback) &&
     [5, 10, 20].includes(count)
   const seed = get("seed").slice(0, 100) || "first-session"
+  const requestedQuestion = get("question")
   const matching = matchingQuestions(practiceQuestions, filters)
+  const targetQuestion = matching.find(item => item.id === requestedQuestion)
   const questions = valid
-    ? selectPracticeSession(
+    ? targetQuestion ? [targetQuestion] : requestedQuestion ? [] : selectPracticeSession(
         practiceQuestions,
         filters,
         count,
@@ -56,6 +59,12 @@ export default async function PracticePage({
         mode === "mixed",
       )
     : []
+  const supabase = await createClient()
+  const { data: savedBookmarks } = questions.length
+    ? await supabase.from("bookmarks").select("resource_id").eq("user_id", owner.id)
+      .eq("resource_type", "question").in("resource_id", questions.map(item => item.id))
+    : { data: [] }
+  const bookmarkedQuestions = new Set((savedBookmarks ?? []).map(item => item.resource_id))
   const newParams = new URLSearchParams({
     ...filters,
     mode,
@@ -176,13 +185,14 @@ export default async function PracticePage({
       <PracticeSession
         key={JSON.stringify([filters, mode, feedback, count, seed])}
         initialQuestions={questions}
-        requestedCount={mode === "mixed" ? 20 : count}
+        requestedCount={requestedQuestion ? 1 : mode === "mixed" ? 20 : count}
         feedback={feedback === "checkpoint" ? "checkpoint" : "guided"}
         newSessionHref={`/practice?${newParams}`}
         resources={Object.fromEntries(
           questions.map((question) => [
             question.id,
             {
+              bookmarked: bookmarkedQuestions.has(question.id),
               links: [
                 ...commandDrills
                   .filter((drill) =>

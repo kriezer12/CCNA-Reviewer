@@ -144,9 +144,27 @@ const authServer = createServer(async (request, response) => {
       const revision = Number(requestUrl.searchParams.get("content_revision")?.replace(/^eq\./, ""))
       fixtureRows[table] = (fixtureRows[table] ?? []).filter(row => row.question_id !== questionId || row.content_revision !== revision)
     }
+    if (table === "bookmarks" && request.method === "POST") {
+      const record = await readJson(request)
+      const existing = fixtureRows[table] ?? []
+      if (!existing.some(row => row.user_id === record.user_id && row.resource_type === record.resource_type && row.resource_id === record.resource_id))
+        existing.push({ ...record, saved_at: new Date().toISOString() })
+      fixtureRows[table] = existing
+    }
+    if (table === "bookmarks" && request.method === "DELETE") {
+      const type = requestUrl.searchParams.get("resource_type")?.replace(/^eq\./, "")
+      const id = requestUrl.searchParams.get("resource_id")?.replace(/^eq\./, "")
+      fixtureRows[table] = (fixtureRows[table] ?? []).filter(row => row.resource_type !== type || row.resource_id !== id)
+    }
     const tableRows = request.method === "GET" ? (fixtureRows[table] ?? []) : []
     const requestedLab = requestUrl.searchParams.get("lab_id")?.replace(/^eq\./, "")
-    const rows = requestedLab ? tableRows.filter((row) => row.lab_id === requestedLab) : tableRows
+    const requestedUser = requestUrl.searchParams.get("user_id")?.replace(/^eq\./, "")
+    const requestedType = requestUrl.searchParams.get("resource_type")?.replace(/^eq\./, "")
+    const requestedId = requestUrl.searchParams.get("resource_id")?.replace(/^eq\./, "")
+    const requestedIds = requestUrl.searchParams.get("resource_id")?.match(/^in\.\((.*)\)$/)?.[1]?.split(",") ?? []
+    const rows = tableRows.filter((row) => (!requestedLab || row.lab_id === requestedLab) &&
+      (!requestedUser || row.user_id === requestedUser) && (!requestedType || row.resource_type === requestedType) &&
+      (!requestedId || row.resource_id === requestedId) && (!requestedIds.length || requestedIds.includes(row.resource_id)))
     response.writeHead(200, {
       ...corsHeaders,
       "Content-Type": "application/json; charset=utf-8",

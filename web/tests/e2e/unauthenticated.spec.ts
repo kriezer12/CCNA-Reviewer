@@ -10,6 +10,7 @@ test("protected routes redirect unsigned visitors to sign in", async ({
     "/learn/unknown",
     "/practice",
     "/review",
+    "/bookmarks",
     "/command-drills",
     "/exercises",
     "/exercises/subnetting",

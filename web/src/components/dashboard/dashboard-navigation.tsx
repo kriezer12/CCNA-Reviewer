@@ -20,6 +20,7 @@ const navigation = [
   { label: "Learn", href: "/learn", icon: BookOpen },
   { label: "Practice", href: "/practice", icon: ShieldCheck },
   { label: "Review", href: "/review", icon: BookOpen },
+  { label: "Bookmarks", href: "/bookmarks", icon: BookOpen },
   { label: "Exercises", href: "/exercises", icon: Calculator },
   { label: "Labs", href: "/labs", icon: FlaskConical },
   { label: "Command drills", href: "/command-drills", icon: Terminal },

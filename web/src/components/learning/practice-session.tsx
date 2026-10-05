@@ -15,8 +15,10 @@ import { Field, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field"
 import { Progress } from "@/components/ui/progress"
 import type { PracticeQuestion } from "@/content/practice/types"
 import { SaveMissed } from "@/components/learning/save-missed"
+import { BookmarkToggle } from "@/components/learning/bookmark-toggle"
 
 export interface PracticeResources {
+  readonly bookmarked?: boolean
   readonly links: readonly { title: string; href: string }[]
   readonly sources: readonly { title: string; locator: string }[]
 }
@@ -256,6 +258,7 @@ export function PracticeSession({
               </CardTitle>
             </CardHeader>
             <CardContent>
+              <BookmarkToggle resourceType="question" resourceId={item.id} saved={resources[item.id]?.bookmarked} />
               <AnswerFeedback
                 question={item}
                 selected={answers[item.id]}
