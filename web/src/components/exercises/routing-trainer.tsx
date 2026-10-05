@@ -21,8 +21,8 @@ export function RoutingTrainer() {
   const packet = kind === "packet" ? packetCases[index % packetCases.length] : null
   return <div className="flex flex-col gap-5">
     <div className="flex flex-wrap gap-3" aria-label="Exercise type">
-      <Button className="min-h-11" variant={kind === "route" ? "default" : "outline"} onClick={() => changeKind("route")}>Routing-table choices</Button>
-      <Button className="min-h-11" variant={kind === "packet" ? "default" : "outline"} onClick={() => changeKind("packet")}>Packet-flow choices</Button>
+      <Button className="min-h-11" variant={kind === "route" ? "default" : "outline"} aria-pressed={kind === "route"} onClick={() => changeKind("route")}>Routing-table choices</Button>
+      <Button className="min-h-11" variant={kind === "packet" ? "default" : "outline"} aria-pressed={kind === "packet"} onClick={() => changeKind("packet")}>Packet-flow choices</Button>
     </div>
     <Card>
       <CardHeader>

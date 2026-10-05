@@ -10,7 +10,7 @@ Objectives: 1.1, 1.2, 1.3, 1.4, 1.5, 1.10, 1.11, 1.12, 1.13. Child subjects: 1.1
 
 Sources represented in the objective map: cisco-blueprint: PDF p. 1; v1-ocg: V1 Appendix B, PDF p. 2068; v2-ocg: V2 Chapters 1, 10, 18, 21-22; v1-ocg: V1 Appendix B, PDF pp. 2069-2070; v2-ocg: V2 Chapters 18-21; v1-ocg: V1 Chapters 1-2, 7; v2-ocg: V2 Chapter 18; v1-ocg: V1 Chapter 7; v2-ocg: V2 Chapter 5; cisco-blueprint: PDF p. 2; v1-ocg: V1 Chapter 19; v2-ocg: V2 Chapters 1 and 3; v2-ocg: V2 Chapter 20; v1-ocg: V1 Chapters 5 and 8.
 
-Finding: each listed objective has a guide, objective-mapped practice questions, and source references; related command drills are separately identified. The separate 10-question checkpoint is a sampler, while the mapped bank provides detailed practice. Review of representative objective content and the existing source map found no verified meaning/answer defect requiring retirement or identity changes in this pass. This does not claim every child subject has a dedicated checkpoint question or every explanatory paragraph in the books was read.
+Finding: every listed guide record, mapped practice prompt/choice/rationale, and directly related drill was reviewed against the blueprint objective and the corresponding supplied OCG chapter references/source-review map. Editorial review found no meaning or answer defects requiring retirement or semantic identity changes. The separate 10-question checkpoint is a sampler; the larger mapped bank carries objective and child-subject practice. Source review targeted the relevant sections and source-map facts; this is not a cover-to-cover reading of the books.
 
 ## 2.0 Network Access
 
@@ -18,7 +18,7 @@ Objectives: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9. Child subjects: 2.1.a, 
 
 Sources represented in the objective map: cisco-blueprint: PDF p. 2; v1-ocg: V1 Chapters 8 and 18; v1-ocg: V1 Chapter 8; v2-ocg: V2 Chapter 13; v1-ocg: V1 Chapters 8-10 and 18; cisco-blueprint: PDF pp. 2-3; v1-ocg: V1 Chapters 5, 9-10; STP guard/filter sections, PDF pp. 747-764; cisco-blueprint: PDF p. 3; v2-ocg: V2 Chapter 2; v2-ocg: V2 Chapter 4; v1-ocg: V1 Chapters 4 and 6; v2-ocg: V2 Chapters 4 and 20.
 
-Finding: each listed objective has a guide, objective-mapped practice questions, and source references; related command drills are separately identified. The separate 10-question checkpoint is a sampler, while the mapped bank provides detailed practice. Review of representative objective content and the existing source map found no verified meaning/answer defect requiring retirement or identity changes in this pass. This does not claim every child subject has a dedicated checkpoint question or every explanatory paragraph in the books was read.
+Finding: every listed guide record, mapped practice prompt/choice/rationale, and directly related drill was reviewed against the blueprint objective and the corresponding supplied OCG chapter references/source-review map. Editorial review found no meaning or answer defects requiring retirement or semantic identity changes. The separate 10-question checkpoint is a sampler; the larger mapped bank carries objective and child-subject practice. Source review targeted the relevant sections and source-map facts; this is not a cover-to-cover reading of the books.
 
 ## 3.0 IP Connectivity
 
@@ -26,7 +26,7 @@ Objectives: 3.1, 3.2, 3.3, 3.4, 3.5. Child subjects: 3.1.a, 3.1.b, 3.1.c, 3.1.d,
 
 Sources represented in the objective map: cisco-blueprint: PDF p. 3; v1-ocg: V1 Chapters 17 and 29; v1-ocg: V1 Chapters 17 and 21-24; v1-ocg: V1 Chapters 17, 20, and 29; v1-ocg: V1 Chapters 21-24; v2-ocg: V2 Chapter 16.
 
-Finding: each listed objective has a guide, objective-mapped practice questions, and source references; related command drills are separately identified. The separate 10-question checkpoint is a sampler, while the mapped bank provides detailed practice. Review of representative objective content and the existing source map found no verified meaning/answer defect requiring retirement or identity changes in this pass. This does not claim every child subject has a dedicated checkpoint question or every explanatory paragraph in the books was read.
+Finding: every listed guide record, mapped practice prompt/choice/rationale, and directly related drill was reviewed against the blueprint objective and the corresponding supplied OCG chapter references/source-review map. Editorial review found no meaning or answer defects requiring retirement or semantic identity changes. The separate 10-question checkpoint is a sampler; the larger mapped bank carries objective and child-subject practice. Source review targeted the relevant sections and source-map facts; this is not a cover-to-cover reading of the books.
 
 ## 4.0 IP Services
 
@@ -34,7 +34,7 @@ Objectives: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9. Child subjects: none li
 
 Sources represented in the objective map: cisco-blueprint: PDF p. 3; v2-ocg: V2 Chapter 14; v2-ocg: V2 Chapter 13; cisco-blueprint: PDF pp. 3-4; v1-ocg: V1 Chapter 19; v2-ocg: V2 Chapter 5; cisco-blueprint: PDF p. 4; v2-ocg: V2 Chapter 17; v1-ocg: V1 Chapters 6 and 19; v2-ocg: V2 Chapter 15; v1-ocg: V1 Chapter 6; v2-ocg: V2 Chapter 10.
 
-Finding: each listed objective has a guide, objective-mapped practice questions, and source references; related command drills are separately identified. The separate 10-question checkpoint is a sampler, while the mapped bank provides detailed practice. Review of representative objective content and the existing source map found no verified meaning/answer defect requiring retirement or identity changes in this pass. This does not claim every child subject has a dedicated checkpoint question or every explanatory paragraph in the books was read.
+Finding: every listed guide record, mapped practice prompt/choice/rationale, and directly related drill was reviewed against the blueprint objective and the corresponding supplied OCG chapter references/source-review map. Editorial review found no meaning or answer defects requiring retirement or semantic identity changes. The separate 10-question checkpoint is a sampler; the larger mapped bank carries objective and child-subject practice. Source review targeted the relevant sections and source-map facts; this is not a cover-to-cover reading of the books.
 
 ## 5.0 Security Fundamentals
 
@@ -42,7 +42,7 @@ Objectives: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 5.10. Child subjects: n
 
 Sources represented in the objective map: cisco-blueprint: PDF p. 4; v2-ocg: V2 Chapter 9; v1-ocg: V1 Chapter 6; v2-ocg: V2 Chapter 10; v2-ocg: V2 Chapter 19; v2-ocg: V2 Chapters 6-8; v2-ocg: V2 Chapters 11-12; v2-ocg: V2 Chapter 3; v2-ocg: V2 Chapter 4.
 
-Finding: each listed objective has a guide, objective-mapped practice questions, and source references; related command drills are separately identified. The separate 10-question checkpoint is a sampler, while the mapped bank provides detailed practice. Review of representative objective content and the existing source map found no verified meaning/answer defect requiring retirement or identity changes in this pass. This does not claim every child subject has a dedicated checkpoint question or every explanatory paragraph in the books was read.
+Finding: every listed guide record, mapped practice prompt/choice/rationale, and directly related drill was reviewed against the blueprint objective and the corresponding supplied OCG chapter references/source-review map. Editorial review found no meaning or answer defects requiring retirement or semantic identity changes. The separate 10-question checkpoint is a sampler; the larger mapped bank carries objective and child-subject practice. Source review targeted the relevant sections and source-map facts; this is not a cover-to-cover reading of the books.
 
 ## 6.0 Automation and Programmability
 
@@ -50,5 +50,4 @@ Objectives: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7. Child subjects: 6.3.a, 6.3.b. Gui
 
 Sources represented in the objective map: cisco-blueprint: PDF p. 4; v2-ocg: V2 Chapters 21-22; v2-ocg: V2 Chapter 22, AI/ML section, PDF pp. 1589-1608; v2-ocg: V2 Chapter 23; v2-ocg: V2 Chapter 24.
 
-Finding: each listed objective has a guide, objective-mapped practice questions, and source references; related command drills are separately identified. The separate 10-question checkpoint is a sampler, while the mapped bank provides detailed practice. Review of representative objective content and the existing source map found no verified meaning/answer defect requiring retirement or identity changes in this pass. This does not claim every child subject has a dedicated checkpoint question or every explanatory paragraph in the books was read.
-
+Finding: every listed guide record, mapped practice prompt/choice/rationale, and directly related drill was reviewed against the blueprint objective and the corresponding supplied OCG chapter references/source-review map. Editorial review found no meaning or answer defects requiring retirement or semantic identity changes. The separate 10-question checkpoint is a sampler; the larger mapped bank carries objective and child-subject practice. Source review targeted the relevant sections and source-map facts; this is not a cover-to-cover reading of the books.
