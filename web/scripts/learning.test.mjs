@@ -48,6 +48,21 @@ test("mixed-volume citations resolve under the correct book without changing can
   assert.ok(original.some((source) => source.locator.includes("; V2 ")))
   assert.throws(() => learningSources("unknown"), /Unknown learning objective/)
 })
+test("IPv4/IPv6 objectives and their questions point to verified OCG PDF pages", async () => {
+  const refs = Object.fromEntries(["1.6","1.7","1.8","1.9"].map(id => [id, learningSources(id)]))
+  assert.ok(refs["1.6"].some(item => item.sourceId === "v1-ocg" && item.locator.includes("PDF pp. 982-1029")))
+  assert.ok(refs["1.7"].some(item => item.sourceId === "v2-ocg" && item.locator.includes("PDF pp. 950-1017")))
+  assert.ok(refs["1.8"].some(item => item.sourceId === "v1-ocg" && item.locator.includes("PDF pp. 1744-1789")))
+  assert.ok(refs["1.9"].some(item => item.sourceId === "v1-ocg" && item.locator.includes("PDF pp. 1828-1902")))
+  const scope = new Set(["1.6","1.7","1.8","1.9"])
+  const audited = practiceQuestions.filter(question => question.objectiveIds.some(id => scope.has(id)))
+  assert.equal(audited.length, 39)
+  assert.ok(audited.every(question => question.sourceLocators.some(item => item.locator.includes("PDF pp."))))
+  const children = curriculum.objectives.find(item => item.id === "1.9").childObjectives.map(item => item.id)
+  assert.deepEqual(children, ["1.9.a","1.9.b","1.9.c","1.9.d"])
+  const drill = (await import("../src/content/command-drills.ts")).commandDrills.find(item => item.id === "ipv6")
+  assert.ok(drill.sourceLocators.some(item => item.locator.includes("PDF pp. 1744-1971")))
+})
 test("addressing questions have distinct choices, individual rationales, and a valid correct choice", () => {
   assert.equal(addressingQuestions.length, 30)
   for (const question of addressingQuestions) {

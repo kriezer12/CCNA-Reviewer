@@ -8,7 +8,7 @@ User-confirmed code-review fixed point: b95456dc8262e4bdad723c7024343eb2e3c78bfa
 
 | Draft | Canonical ticket | State |
 | --- | --- | --- |
-| 1 | [#25](https://github.com/kriezer12/CCNA-Reviewer/issues/25) Audit and refine IPv4/IPv6 learning content | Not started |
+| 1 | [#25](https://github.com/kriezer12/CCNA-Reviewer/issues/25) Audit and refine IPv4/IPv6 learning content | Audited against supplied guides; precise PDF locators and inventory recorded |
 | 2 | [#26](https://github.com/kriezer12/CCNA-Reviewer/issues/26) Save missed practice questions to a private review list | Implemented; targeted QA in progress |
 | 3 | [#27](https://github.com/kriezer12/CCNA-Reviewer/issues/27) Bookmark guides and practice questions across devices | Implemented; targeted QA passes |
 | 4 | [#28](https://github.com/kriezer12/CCNA-Reviewer/issues/28) Review due questions from the dashboard | Implemented; targeted QA passes |

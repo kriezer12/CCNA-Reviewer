@@ -180,7 +180,7 @@ export const commandDrills: readonly CommandDrill[] = [
       "[up/up] shows interface and line protocol state. FE80::/10 denotes a link-local address; 2001:DB8:10::1 is a documentation-prefix global unicast example. Compare both with the addressing plan.",
     verify:
       "Confirm the interface is up and the expected IPv6 addresses exist.",
-    sourceLocators: [book("v1-ocg", "V1 Chapters 25-28; objectives 1.8-1.9")],
+    sourceLocators: [book("v1-ocg", "V1 Chapters 25-28, PDF pp. 1744-1971; objectives 1.8-1.9")],
   },
   {
     id: "acls",

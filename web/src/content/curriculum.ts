@@ -180,16 +180,12 @@ const objective = (
   title: string,
   performance: Performance,
   blueprintPage: string,
-  bookReference: SourceLocator,
+  bookReference: SourceLocator | readonly SourceLocator[],
   childObjectives: readonly ChildObjective[] = [],
-): Objective => ({
-  id,
-  domainId,
-  title,
-  performance,
-  childObjectives,
-  sourceLocators: [blueprint(blueprintPage), bookReference],
-})
+): Objective => {
+  const bookReferences = "sourceId" in bookReference ? [bookReference] : bookReference
+  return { id, domainId, title, performance, childObjectives, sourceLocators: [blueprint(blueprintPage), ...bookReferences] }
+}
 
 const platform = (
   primary: PlatformKind,
@@ -276,10 +272,10 @@ export const curriculumRegistry = {
     objective("1.3", "1.0", "Compare physical interface and cabling types", "compare", "PDF p. 1", book("v1-ocg", "V1 Chapters 1-2, 7; V2 Chapter 18"), [child("1.3.a", "Single-mode fiber, multimode fiber, copper"), child("1.3.b", "Ethernet shared media and point-to-point connections")]),
     objective("1.4", "1.0", "Identify interface and cable issues", "identify", "PDF p. 1", book("v1-ocg", "V1 Chapter 7")),
     objective("1.5", "1.0", "Compare TCP to UDP", "compare", "PDF p. 1", book("v2-ocg", "V2 Chapter 5")),
-    objective("1.6", "1.0", "Configure and verify IPv4 addressing and subnetting", "configure_verify", "PDF p. 1", book("v1-ocg", "V1 Chapters 6, 11-18; V1 Appendix B, PDF p. 2071")),
-    objective("1.7", "1.0", "Describe private IPv4 addressing", "describe", "PDF pp. 1-2", book("v1-ocg", "V1 Chapters 11-12, 17; V2 Chapter 14")),
-    objective("1.8", "1.0", "Configure and verify IPv6 addressing and prefix", "configure_verify", "PDF p. 2", book("v1-ocg", "V1 Chapters 25-28")),
-    objective("1.9", "1.0", "Describe IPv6 address types", "describe", "PDF p. 2", book("v1-ocg", "V1 Chapters 25-28"), [child("1.9.a", "Unicast: global, unique local, and link local"), child("1.9.b", "Anycast"), child("1.9.c", "Multicast"), child("1.9.d", "Modified EUI-64")]),
+    objective("1.6", "1.0", "Configure and verify IPv4 addressing and subnetting", "configure_verify", "PDF p. 1", book("v1-ocg", "V1 Chapter 13, PDF pp. 982-1029; Chapter 14, PDF pp. 1030-1089; Chapter 15, PDF pp. 1090-1156; Chapter 17, PDF pp. 1212-1280; Chapter 19, PDF pp. 1363-1429; Appendix B, PDF p. 2071")),
+    objective("1.7", "1.0", "Describe private IPv4 addressing", "describe", "PDF pp. 1-2", [book("v1-ocg", "V1 Chapters 11-12, PDF pp. 879-981; Chapter 17, PDF pp. 1212-1280"), book("v2-ocg", "V2 Chapter 14, PDF pp. 950-1017")]),
+    objective("1.8", "1.0", "Configure and verify IPv6 addressing and prefix", "configure_verify", "PDF p. 2", book("v1-ocg", "V1 Chapter 25, PDF pp. 1744-1789; Chapter 26, PDF pp. 1790-1827; Chapter 27, PDF pp. 1828-1902; Chapter 28, PDF pp. 1903-1971")),
+    objective("1.9", "1.0", "Describe IPv6 address types", "describe", "PDF p. 2", book("v1-ocg", "V1 Chapter 25, PDF pp. 1744-1789; Chapter 26, PDF pp. 1790-1827; Chapter 27, PDF pp. 1828-1902; Chapter 28, PDF pp. 1903-1971; Appendix B, PDF pp. 2066-2107"), [child("1.9.a", "Unicast: global, unique local, and link local"), child("1.9.b", "Anycast"), child("1.9.c", "Multicast"), child("1.9.d", "Modified EUI-64")]),
     objective("1.10", "1.0", "Verify IP parameters for Windows, macOS, and Linux clients", "verify", "PDF p. 2", book("v1-ocg", "V1 Chapter 19")),
     objective("1.11", "1.0", "Describe wireless principles", "describe", "PDF p. 2", book("v2-ocg", "V2 Chapters 1 and 3"), [child("1.11.a", "Non-overlapping Wi-Fi channels"), child("1.11.b", "SSID"), child("1.11.c", "RF"), child("1.11.d", "Encryption")]),
     objective("1.12", "1.0", "Explain virtualization fundamentals", "explain", "PDF p. 2", book("v2-ocg", "V2 Chapter 20")),
