@@ -169,7 +169,42 @@ export const EXPECTED_LAB_IDS = [
 ] as const satisfies readonly LabId[]
 
 const blueprint = (locator: string): SourceLocator => ({ sourceId: "cisco-blueprint", locator })
-const book = (sourceId: "v1-ocg" | "v2-ocg", locator: string): SourceLocator => ({ sourceId, locator })
+const bookChapterStarts: Readonly<Record<"v1-ocg" | "v2-ocg", readonly number[]>> = {
+  "v1-ocg": [
+    0, 148, 200, 271, 334, 400, 447, 513, 589, 678, 771, 879, 943, 982,
+    1030, 1090, 1157, 1212, 1281, 1363, 1430, 1488, 1553, 1607, 1667, 1744,
+    1790, 1828, 1903, 1972, 2038, 2066,
+  ],
+  "v2-ocg": [
+    0, 104, 155, 205, 251, 345, 412, 475, 552, 619, 675, 735, 780, 862, 950,
+    1018, 1104, 1158, 1235, 1293, 1361, 1451, 1524, 1614, 1690, 1744, 1756,
+    1818,
+  ],
+}
+function book(sourceId: "v1-ocg" | "v2-ocg", locator: string): SourceLocator {
+  if (/PDF p(?:p\.)?\s*\d/i.test(locator)) return { sourceId, locator }
+  const precise = locator.replace(/\bV([12]) Chapters? ([^;]+)/g, (_match, volume: string, rawList: string) => {
+    const starts = bookChapterStarts[`v${volume}-ocg` as "v1-ocg" | "v2-ocg"]
+    const chapters = [...new Set(rawList.replace(/\band\b/g, ",").match(/\d+(?:-\d+)?/g)!.flatMap(part => {
+      const range = part.trim().split("-").map(Number)
+      return range.length === 2 ? Array.from({ length: range[1] - range[0] + 1 }, (_, offset) => range[0] + offset) : range
+    }))].sort((a, b) => a - b)
+    const groups: number[][] = []
+    for (const chapter of chapters) {
+      if (!starts[chapter]) throw new Error(`Missing ${sourceId} PDF page mapping for Chapter ${chapter}`)
+      const last = groups.at(-1)
+      if (last && chapter === last[last.length - 1] + 1) last.push(chapter)
+      else groups.push([chapter])
+    }
+    return groups.map(group => {
+      const first = group[0], final = group[group.length - 1]
+      const end = starts[final + 1] - 1
+      const label = first === final ? `Chapter ${first}` : `Chapters ${first}-${final}`
+      return `V${volume} ${label}, PDF pp. ${starts[first]}-${end}`
+    }).join("; ")
+  })
+  return { sourceId, locator: precise }
+}
 const curriculumRef = (sourceId: "roadmap" | "lab-courses" | "objective-coverage", locator: string): SourceLocator => ({ sourceId, locator })
 
 const child = (id: string, title: string): ChildObjective => ({ id, title })

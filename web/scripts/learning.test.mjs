@@ -41,8 +41,8 @@ test("mixed-volume citations resolve under the correct book without changing can
       (source) => source.sourceId !== "cisco-blueprint",
     ),
     [
-      { sourceId: "v1-ocg", locator: "V1 Chapter 19" },
-      { sourceId: "v2-ocg", locator: "V2 Chapter 5" },
+      { sourceId: "v1-ocg", locator: "V1 Chapter 19, PDF pp. 1363-1429" },
+      { sourceId: "v2-ocg", locator: "V2 Chapter 5, PDF pp. 345-411" },
     ],
   )
   assert.ok(original.some((source) => source.locator.includes("; V2 ")))

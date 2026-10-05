@@ -2,7 +2,7 @@ import { expect, test, type APIRequestContext } from "@playwright/test";
 
 const authService = "http://127.0.0.1:54321";
 
-test("Study today opens the selected objective, mapped drill, and exact lab without recording activity", async ({
+test("Study today opens the selected guide and exact mapped lab without recording activity", async ({
   page,
   request,
 }) => {
@@ -12,59 +12,25 @@ test("Study today opens the selected objective, mapped drill, and exact lab with
     fullPage: true,
     animations: "disabled",
   });
-  const firstAction = page.getByRole("link", {
-    name: /Continue Week 01: 1\.1/,
-  });
-  await expect(firstAction).toHaveAttribute(
-    "href",
-    "/roadmap/week/01#objective-1-1",
-  );
+  const firstAction = page.getByRole("link", { name: /Read the guide/ });
+  await expect(firstAction).toHaveAttribute("href", "/learn/1.1");
   await firstAction.click();
-  await expect(page).toHaveURL(/\/roadmap\/week\/01#objective-1-1$/);
-  await expect(page.locator("#objective-1-1")).toBeVisible();
+  await expect(page).toHaveURL(/\/learn\/1\.1$/);
+  await expect(page.getByRole("heading", { name: /Explain the role and function/ })).toBeVisible();
 
-  await request.post(`${authService}/__test/config`, {
-    data: {
-      rows: {
-        topic_progress: [
-          {
-            objective_id: "1.1",
-            status: "complete",
-            updated_at: "2026-10-01T00:00:00Z",
-            completed_at: "2026-10-01T00:00:00Z",
-          },
-          {
-            objective_id: "1.3",
-            status: "complete",
-            updated_at: "2026-10-01T00:00:00Z",
-            completed_at: "2026-10-01T00:00:00Z",
-          },
-          {
-            objective_id: "1.4",
-            status: "in_progress",
-            updated_at: "2026-10-01T00:00:00Z",
-            completed_at: null,
-          },
-        ],
-      },
-    },
-  });
-  await request.delete(`${authService}/__test/requests`);
   await page.goto("/");
-  await expect(
-    page.getByRole("link", { name: /Continue Week 01: 1\.4/ }),
-  ).toBeVisible();
-  await page
-    .getByRole("link", { name: "Practice Read interface state" })
-    .click();
-  await expect(page).toHaveURL(/\/command-drills\?drill=interfaces$/);
-  await page.getByRole("link", { name: /Open L01:/ }).click();
+  const labAction = page.getByRole("link", { name: /Apply in a lab/ });
+  await expect(labAction).toHaveAttribute("href", "/labs/L01");
+  await labAction.click();
   await expect(page).toHaveURL(/\/labs\/L01$/);
+
   const requests = (await (
     await request.get(`${authService}/__test/requests`)
   ).json()) as { method: string; table?: string }[];
   expect(
-    requests.filter((entry) => entry.table && entry.method !== "GET"),
+    requests.filter(
+      (entry) => entry.table && entry.method !== "GET" && entry.method !== "HEAD",
+    ),
   ).toEqual([]);
 });
 
@@ -78,8 +44,8 @@ test("saved lesson understanding updates Study today on the next dashboard rende
   await expect(page.getByRole("button", { name: "Saved" })).toBeVisible();
   await page.goto("/");
   await expect(
-    page.getByRole("link", { name: /Continue Week 01: 1\.3/ }),
-  ).toBeVisible();
+    page.getByRole("link", { name: /Read the guide/ }),
+  ).toHaveAttribute("href", "/learn/1.3");
 });
 
 test("Study today and lab workspace fit narrow and zoom-equivalent viewports", async ({
@@ -94,7 +60,8 @@ test("Study today and lab workspace fit narrow and zoom-equivalent viewports", a
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth),
     ).toBeLessThanOrEqual(width + 1);
-    const action = page.getByRole("link", { name: /Continue Week 01: 1\.1/ });
+    const action = page.getByRole("link", { name: /Read the guide/ });
+    await expect(action).toHaveAttribute("href", "/learn/1.1");
     expect((await action.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(
       44,
     );
