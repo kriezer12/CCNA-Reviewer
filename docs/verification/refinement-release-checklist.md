@@ -4,7 +4,7 @@
 
 - Base: `b95456dc8262e4bdad723c7024343eb2e3c78bfa` (Issue #23 learning expansion).
 - Branch: `feat/24-learning-refinement`.
-- Tested candidate: `4af35e9b39e6c7763f8b3d050394692c962d23e7`.
+- Tested candidate code commit: `6b4eee5254bae48259d1e8f27434b611312bcd30` (46/46 Playwright tests passed on this revision).
 - Worktree: `C:\Users\osori\.codex\worktrees\ccna-learning-expansion\CCNA`.
 - Issue #23 remains open; GitHub currently returns no matching PR from a `#23` search. Verify the exact pull request/release relation before promotion.
 - No preview for this candidate has been published. Do not reuse a deployment alias from an earlier revision as evidence for this commit.
