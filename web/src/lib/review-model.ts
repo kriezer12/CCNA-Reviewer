@@ -1,5 +1,13 @@
 import { practiceQuestions } from "../content/practice/index.ts"
 
+export function nextReviewSchedule(currentStage: number, correct: boolean) {
+  if (!Number.isSafeInteger(currentStage) || currentStage < 0 || currentStage > 4)
+    throw new RangeError("Review stage must be between zero and four.")
+  return correct
+    ? { nextStage: Math.min(currentStage + 1, 4), daysUntilDue: [3, 7, 14, 30][Math.min(currentStage, 3)] }
+    : { nextStage: 0, daysUntilDue: 1 }
+}
+
 export interface QuestionReference {
   readonly questionId: string
   readonly contentRevision: number

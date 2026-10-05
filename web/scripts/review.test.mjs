@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises"
 import { test } from "node:test"
 import { practiceQuestions } from "../src/content/practice/index.ts"
 import { curriculum } from "../src/content/curriculum.ts"
-import { validateMissedSubmission } from "../src/lib/review-model.ts"
+import { nextReviewSchedule, validateMissedSubmission } from "../src/lib/review-model.ts"
 
 const first = practiceQuestions[0]
 const second = practiceQuestions[1]
@@ -18,6 +18,14 @@ test("derive only missed canonical questions, ignoring a claimed client score", 
 test("a fully correct completed session produces no retained questions", () => {
   assert.deepEqual(validateMissedSubmission({ answers: [answer(first)] }), { ok: true, missed: [] })
 })
+test("review dates lengthen 3, 7, 14, then 30 days and wrong answers return tomorrow", () => {
+  assert.deepEqual([0,1,2,3,4].map(stage => nextReviewSchedule(stage, true)), [
+    {nextStage:1,daysUntilDue:3},{nextStage:2,daysUntilDue:7},{nextStage:3,daysUntilDue:14},
+    {nextStage:4,daysUntilDue:30},{nextStage:4,daysUntilDue:30},
+  ])
+  assert.deepEqual(nextReviewSchedule(4,false), {nextStage:0,daysUntilDue:1})
+  assert.throws(() => nextReviewSchedule(5,true), RangeError)
+})
 test("reject incomplete, duplicate, unknown, stale and tampered answers atomically", () => {
   for (const body of [null, [], {}, { answers: [] }, { answers: [answer(first), answer(first)] },
     { answers: [{ ...answer(first), questionId: "retired" }] },
@@ -28,7 +36,9 @@ test("reject incomplete, duplicate, unknown, stale and tampered answers atomical
 })
 test("every published question revision is represented in the RLS catalog", async () => {
   const migration = await readFile(new URL("../../supabase/migrations/20261004163735_retained_review.sql", import.meta.url), "utf8")
+  const answers = await readFile(new URL("../../supabase/migrations/20261005020752_spaced_review_schedule.sql", import.meta.url), "utf8")
   for (const item of practiceQuestions) assert.ok(migration.includes(`('${item.id}',${item.contentRevision})`), `missing catalog revision ${item.id}`)
+  for (const item of practiceQuestions) assert.ok(answers.includes(`('${item.id}',${item.contentRevision},'${item.correctOptionId}')`), `missing private grading answer ${item.id}`)
   for (const contract of ["enable row level security", "private.is_learning_owner()",
     "grant insert (user_id, question_id, content_revision)", "successful_stage integer not null default 0",
     "due_on date not null default"]) assert.ok(migration.includes(contract), `missing persistence contract: ${contract}`)

@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test"
 import { practiceQuestions } from "../../src/content/practice"
 import { selectPracticeSession } from "../../src/lib/practice-model"
+import { todayInTimeZone, toLocalDateKey } from "../../src/lib/analytics"
 
 const fixture = "http://127.0.0.1:54321"
 test.beforeEach(async ({ request }) => { await request.post(`${fixture}/__test/config`, { data: {} }) })
@@ -54,4 +55,47 @@ test("server rejects stale answers and expired authorization before writes", asy
   await request.post(`${fixture}/__test/config`, {data:{expireAuth:true}})
   const rejected = await request.post("/api/review-items", {data:{answers:[{questionId:item.id, contentRevision:1, selectedChoice:item.correctOptionId}]}})
   expect(rejected.status()).toBe(401)
+})
+
+test("Review today shows only due items; checking schedules the next local date once", async ({page,request}) => {
+  const question = practiceQuestions[0]
+  const today = toLocalDateKey(todayInTimeZone("Asia/Manila"))
+  const nextDue = new Date(`${today}T00:00:00Z`)
+  nextDue.setUTCDate(nextDue.getUTCDate()+3)
+  const dueOn = nextDue.toISOString().slice(0,10)
+  await request.post(`${fixture}/__test/config`, {data:{correctChoices:{[question.id]:question.correctOptionId},rows:{review_items:[{
+    user_id:"e2e-owner",question_id:question.id,content_revision:question.contentRevision,due_on:today,saved_at:`${today}T00:00:00Z`,successful_stage:0,
+  }]}}})
+  await page.goto("/")
+  await expect(page.getByText("1 question due in your study date.", {exact:true})).toBeVisible()
+  await page.getByRole("link",{name:"Open Review today",exact:true}).click()
+  await expect(page.getByText(question.prompt,{exact:true})).toBeVisible()
+  const correct=question.choices.find(item=>item.id===question.correctOptionId)!
+  await page.getByRole("radio",{name:`${correct.id}. ${correct.text}`,exact:true}).check()
+  await page.getByRole("button",{name:"Check answer",exact:true}).click()
+  await expect(page.locator('div[role="status"][aria-live="polite"]')).toContainText(`Next due: ${dueOn}`)
+  const wrong=question.choices.find(item=>item.id!==question.correctOptionId)!
+  const retry=await request.post(`${fixture}/rest/v1/rpc/record_review_check`, {data:{p_question_id:question.id,p_content_revision:question.contentRevision,p_selected_choice:wrong.id}})
+  const retryResult=await retry.json()
+  expect(retryResult[0]).toMatchObject({is_correct:true,due_on:dueOn,successful_stage:1,already_checked:true})
+  await page.goto("/")
+  await expect(page.getByText("0 questions due in your study date.",{exact:true})).toBeVisible()
+  await page.goto("/review")
+  await expect(page.getByText("No questions due today",{exact:true})).toBeVisible()
+  await expect(page.getByText(`Your next saved question is due ${dueOn}.`,{exact:false})).toBeVisible()
+})
+
+test("an incorrect due review returns tomorrow with a clear explanation", async ({page,request}) => {
+  const question=practiceQuestions[1]
+  const today=toLocalDateKey(todayInTimeZone("Asia/Manila"))
+  const dueTomorrow=new Date(`${today}T00:00:00Z`); dueTomorrow.setUTCDate(dueTomorrow.getUTCDate()+1)
+  const wrong=question.choices.find(item=>item.id!==question.correctOptionId)!
+  await request.post(`${fixture}/__test/config`,{data:{correctChoices:{[question.id]:question.correctOptionId},rows:{review_items:[{
+    user_id:"e2e-owner",question_id:question.id,content_revision:question.contentRevision,due_on:today,saved_at:`${today}T00:00:00Z`,successful_stage:3,
+  }]}}})
+  await page.goto("/review")
+  await page.getByRole("radio",{name:`${wrong.id}. ${wrong.text}`,exact:true}).check()
+  await page.getByRole("button",{name:"Check answer",exact:true}).click()
+  await expect(page.locator('div[role="status"][aria-live="polite"]')).toContainText("Review this:")
+  await expect(page.locator('div[role="status"][aria-live="polite"]')).toContainText(`Next due: ${dueTomorrow.toISOString().slice(0,10)}`)
 })

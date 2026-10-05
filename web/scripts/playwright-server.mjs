@@ -17,6 +17,8 @@ let failReads = new Set()
 let failWrites = new Set()
 let expireAuth = false
 let fixtureRows = {}
+let correctChoices = {}
+let reviewSchedules = {}
 
 const user = {
   id: "e2e-owner",
@@ -74,6 +76,8 @@ const authServer = createServer(async (request, response) => {
     failWrites = new Set(body.failWrites ?? [])
     expireAuth = Boolean(body.expireAuth)
     fixtureRows = body.rows ?? {}
+    correctChoices = body.correctChoices ?? {}
+    reviewSchedules = {}
     sendJson(response, 200, { responseDelayMs, failReads: [...failReads], failWrites: [...failWrites], expireAuth }, corsHeaders)
     return
   }
@@ -124,6 +128,26 @@ const authServer = createServer(async (request, response) => {
       sendJson(response, 503, { message: `Fixture failure for ${table}`, code: "fixture_failure" }, corsHeaders)
       return
     }
+    if (table === "rpc/record_review_check" && request.method === "POST") {
+      const body = await readJson(request)
+      const key = `${user.id}:${body.p_question_id}:${body.p_content_revision}:${new Intl.DateTimeFormat("en-CA", {timeZone:"Asia/Manila"}).format(new Date())}`
+      const row = (fixtureRows.review_items ?? []).find(item => item.user_id === user.id && item.question_id === body.p_question_id && item.content_revision === body.p_content_revision)
+      if (!row) { sendJson(response,404,{message:"Saved review unavailable",code:"P0002"},corsHeaders); return }
+      let result = reviewSchedules[key]
+      if (!result) {
+        const correct = correctChoices[body.p_question_id] === body.p_selected_choice
+        const stage = correct ? Math.min(row.successful_stage + 1,4) : 0
+        const days = correct ? [3,7,14,30][Math.min(row.successful_stage,3)] : 1
+        const day = new Date(`${key.slice(key.lastIndexOf(":")+1)}T00:00:00Z`)
+        day.setUTCDate(day.getUTCDate()+days)
+        result = {is_correct:correct,due_on:day.toISOString().slice(0,10),successful_stage:stage,already_checked:false}
+        reviewSchedules[key] = result
+      } else result = {...result,already_checked:true}
+      row.successful_stage = result.successful_stage
+      row.due_on = result.due_on
+      response.writeHead(200,{...corsHeaders,"Content-Type":"application/json; charset=utf-8"}).end(JSON.stringify([result]))
+      return
+    }
     if (request.method === "POST" && (table === "topic_progress" || table === "lab_progress")) {
       const record = await readJson(request)
       const key = table === "topic_progress" ? "objective_id" : "lab_id"
@@ -156,15 +180,17 @@ const authServer = createServer(async (request, response) => {
       const id = requestUrl.searchParams.get("resource_id")?.replace(/^eq\./, "")
       fixtureRows[table] = (fixtureRows[table] ?? []).filter(row => row.resource_type !== type || row.resource_id !== id)
     }
-    const tableRows = request.method === "GET" ? (fixtureRows[table] ?? []) : []
+    const tableRows = request.method === "GET" || request.method === "HEAD" ? (fixtureRows[table] ?? []) : []
     const requestedLab = requestUrl.searchParams.get("lab_id")?.replace(/^eq\./, "")
     const requestedUser = requestUrl.searchParams.get("user_id")?.replace(/^eq\./, "")
     const requestedType = requestUrl.searchParams.get("resource_type")?.replace(/^eq\./, "")
     const requestedId = requestUrl.searchParams.get("resource_id")?.replace(/^eq\./, "")
     const requestedIds = requestUrl.searchParams.get("resource_id")?.match(/^in\.\((.*)\)$/)?.[1]?.split(",") ?? []
+    const dueBefore = requestUrl.searchParams.get("due_on")?.match(/^lte\.(.*)$/)?.[1]
     const rows = tableRows.filter((row) => (!requestedLab || row.lab_id === requestedLab) &&
       (!requestedUser || row.user_id === requestedUser) && (!requestedType || row.resource_type === requestedType) &&
-      (!requestedId || row.resource_id === requestedId) && (!requestedIds.length || requestedIds.includes(row.resource_id)))
+      (!requestedId || row.resource_id === requestedId) && (!requestedIds.length || requestedIds.includes(row.resource_id)) &&
+      (!dueBefore || row.due_on <= dueBefore))
     response.writeHead(200, {
       ...corsHeaders,
       "Content-Type": "application/json; charset=utf-8",

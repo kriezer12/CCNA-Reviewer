@@ -11,12 +11,18 @@ import { Progress } from "@/components/ui/progress"
 import { calculateQuizScore, loadDashboardModel } from "@/lib/dashboard-model"
 import { selectStudyToday } from "@/lib/study-today-model"
 import { requireOwner } from "@/lib/supabase/auth"
+import { createClient } from "@/lib/supabase/server"
+import { todayInTimeZone, toLocalDateKey } from "@/lib/analytics"
 
 export const dynamic = "force-dynamic"
 
 export default async function Home() {
   const user = await requireOwner()
   const model = await loadDashboardModel(user.id)
+  const supabase = await createClient()
+  const studyToday = toLocalDateKey(todayInTimeZone(process.env.STUDY_TIME_ZONE ?? "Asia/Manila"))
+  const {count: dueReviewCount, error: dueReviewError} = await supabase.from("review_items")
+    .select("question_id",{count:"exact",head:true}).eq("user_id",user.id).lte("due_on",studyToday)
   const {
     dataError,
     objectiveCompletion,
@@ -59,6 +65,18 @@ export default async function Home() {
       {dataError ? <DashboardDataError /> : null}
 
       <StudyTodayPanel recommendation={recommendation} />
+
+      <Card>
+        <CardHeader>
+          <CardDescription>Saved questions ready to retrieve</CardDescription>
+          <CardTitle>Review today</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-wrap items-center gap-3">
+          {dueReviewError ? <p className="text-sm text-muted-foreground">Due review count is unavailable. Open your saved review list to retry.</p>
+            : <p className="text-sm text-muted-foreground">{dueReviewCount ?? 0} {dueReviewCount === 1 ? "question" : "questions"} due in your study date.</p>}
+          <Link href="/review" className={buttonVariants({variant:"outline",className:"min-h-11"})}>Open Review today</Link>
+        </CardContent>
+      </Card>
 
       <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
         <Card>

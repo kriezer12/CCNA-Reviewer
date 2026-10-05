@@ -22,3 +22,8 @@ test("protected routes redirect unsigned visitors to sign in", async ({
     ).toBeVisible()
   }
 })
+
+test("review answer writes require authenticated access", async ({request}) => {
+  const response = await request.post("/api/review-checks", {data:{questionId:"ipv4-network-1",contentRevision:1,selectedChoice:"A"}})
+  expect(response.status()).toBe(401)
+})

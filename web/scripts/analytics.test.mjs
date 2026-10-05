@@ -45,6 +45,11 @@ test("aggregates multiple sessions on one date", () => {
   )
 })
 
+test("review calendar date changes at midnight in the owner's Manila timezone", () => {
+  assert.equal(todayInTimeZone("Asia/Manila", new Date("2026-10-04T15:59:00Z")).getDate(), 4)
+  assert.equal(todayInTimeZone("Asia/Manila", new Date("2026-10-04T16:00:00Z")).getDate(), 5)
+})
+
 test("counts only consecutive days that reach 30 minutes", () => {
   const today = new Date(2026, 8, 20)
   assert.equal(
