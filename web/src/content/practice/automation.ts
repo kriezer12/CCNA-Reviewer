@@ -8,7 +8,7 @@ export const automationQuestions = [
     [
       [
         "To detect incorrect assumptions before expanding their impact",
-        "Correct: a pilot tests the change with a limited scope.",
+        "A pilot tests the change with a limited scope.",
       ],
       [
         "To guarantee every untested device behaves identically",
@@ -31,7 +31,7 @@ export const automationQuestions = [
     [
       [
         "enabled is a boolean; description is null",
-        "Correct: false and null are distinct JSON values.",
+        "false and null are distinct JSON values.",
       ],
       ["Both values are strings", "Neither value is quoted."],
       [
